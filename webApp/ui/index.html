@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attention - Todo Manager</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Attention - Todo Manager</h1>
+            <p class="subtitle">Manage your todos and sync to GitHub</p>
+        </header>
+
+        <div id="setup-section" class="section">
+            <h2>🔐 GitHub Authentication</h2>
+            <p>Enter your GitHub Personal Access Token to get started. Your token will be stored securely in your browser.</p>
+            
+            <div class="token-instructions">
+                <h3>How to create a token:</h3>
+                <ol>
+                    <li>Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Settings → Personal Access Tokens</a></li>
+                    <li>Click <strong>"Generate new token"</strong> (Fine-grained)</li>
+                    <li><strong>Token name:</strong> Attention Todo App</li>
+                    <li><strong>Repository access:</strong> Only select repositories → <strong>Straightly/attention</strong></li>
+                    <li><strong>Permissions:</strong> Repository permissions → <strong>Contents</strong> → Read and write</li>
+                    <li>Click <strong>"Generate token"</strong> and copy it</li>
+                </ol>
+            </div>
+            
+            <div class="token-input-form">
+                <label for="token-input">GitHub Personal Access Token:</label>
+                <input type="password" id="token-input" placeholder="github_pat_xxxxxxxxxxxxx..." />
+                <div class="token-actions">
+                    <button id="save-token" class="btn btn-primary">Save & Connect</button>
+                    <button id="show-token" class="btn btn-secondary">👁️ Show</button>
+                </div>
+            </div>
+            
+            <div id="connection-status"></div>
+        </div>
+
+        <div id="app-section" class="section" style="display: none;">
+            <div class="controls">
+                <div class="file-info">
+                    <span class="file-label">📄 Managing: <strong>ToDos/List.json</strong></span>
+                    <button id="refresh-file" class="btn btn-secondary">🔄 Refresh</button>
+                    <button id="logout-btn" class="btn btn-secondary">🚪 Logout</button>
+                </div>
+                <div class="status" id="status"></div>
+            </div>
+
+            <div class="add-todo">
+                <input type="text" id="new-todo" placeholder="Add new todo item (use #tags like #work #idea)..." />
+                <button id="add-todo-btn" class="btn btn-primary">Add Todo</button>
+            </div>
+
+            <div id="tag-filters" class="tag-filters"></div>
+
+            <div class="todo-list-header">
+                <div class="header-checkbox">
+                    <input type="checkbox" id="show-completed-toggle" />
+                    <label for="show-completed-toggle">👁️ Show Completed</label>
+                </div>
+            </div>
+
+            <div id="todo-list" class="todo-list"></div>
+
+            <div class="actions">
+                <button id="save-changes" class="btn btn-success" disabled>💾 Save & Commit to GitHub</button>
+                <span id="changes-indicator"></span>
+            </div>
+
+            <hr style="margin: 40px 0; border: none; border-top: 2px solid #e9ecef;">
+
+            <div class="raw-writing-section">
+                <h2>✍️ Capture Raw Writing</h2>
+                <p class="subtitle">Quick capture for spontaneous thoughts and ideas</p>
+                
+                <div class="writing-input">
+                    <label for="raw-writing-text">Your raw thought or idea:</label>
+                    <textarea 
+                        id="raw-writing-text" 
+                        placeholder="Type your raw thought here... It will be saved as a structured markdown file in Writing/RawWrittings/"
+                        rows="6"
+                    ></textarea>
+                    
+                    <div class="writing-actions">
+                        <button id="save-writing-btn" class="btn btn-primary">💾 Save Raw Writing</button>
+                        <span id="writing-status" class="status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ for organizing your thoughts</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="js/token-manager.js"></script>
+    <script src="js/github-api.js"></script>
+    <script src="js/todo-manager.js"></script>
+    <script src="js/writing-manager.js"></script>
+    <script src="js/todo-ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
