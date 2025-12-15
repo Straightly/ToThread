@@ -147,15 +147,15 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 **Goal:** Build a new ToThread-native Todo web UI that uses Google login and `/todos` (KV-backed) directly, following `ToThread/ToDoApp-Spec.md`, without legacy GitHub/PAT dependencies.
 
-1. [ ] **Step 5.1 — Create new UI skeleton**
+1. [X ] **Step 5.1 — Create new UI skeleton**
    - Recreate a minimal `webApp/ui` folder structure (HTML, CSS, JS) focused only on the new ToThread UI.
    - Basic page layout per spec: header, Google sign-in section, app section with todo list and (placeholder) raw writing area.
 
-2. [ ] **Step 5.2 — Wire Google Identity Services into the new UI**
+2. [X ] **Step 5.2 — Wire Google Identity Services into the new UI**
    - Add the GIS script and sign-in button.
    - On successful sign-in, obtain an ID token and pass it into a small auth/init helper (e.g., `ToThreadAuth.setIdToken`).
 
-3. [ ] **Step 5.3 — Implement frontend `/todos` client and state manager**
+3. [X ] **Step 5.3 — Implement frontend `/todos` client and state manager**
    - Implement a lightweight JS client for `GET /todos` and `PUT /todos` using the ID token.
    - Implement a todo state manager per spec (load, add, edit, toggle, track `hasChanges`, parse tags).
 

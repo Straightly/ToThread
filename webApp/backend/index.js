@@ -1,6 +1,6 @@
 import html from "./ui/index.html";
 import css from "./ui/style.css";
-import js from "./ui/main.js";
+import js from "./ui/main.txt";
 const TODOS_KEY = "todos/main";
 const ALLOWLIST_KEY = "tothread/auth/allowlist";
 
