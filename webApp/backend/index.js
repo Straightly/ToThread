@@ -1,3 +1,6 @@
+import html from "./ui/index.html";
+import css from "./ui/style.css";
+import js from "./ui/main.js";
 const TODOS_KEY = "todos/main";
 const ALLOWLIST_KEY = "tothread/auth/allowlist";
 
@@ -224,144 +227,34 @@ export default {
         }
       );
     }
+    // Serve the new UI for root and static assets
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      return new Response(html, {
+        status: 200,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+        },
+      });
+    }
 
-    // Default: serve the same Google-login UI used in ui/index.html
-    const html = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ToThread UI</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        margin: 0;
-        padding: 2rem;
-        background: #f8f9fa;
-        color: #212529;
-      }
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-      }
-      h1 {
-        margin-bottom: 0.5rem;
-      }
-      p {
-        margin-top: 0.25rem;
-        line-height: 1.5;
-      }
-      button {
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        border: 1px solid #ced4da;
-        background: #ffffff;
-        cursor: pointer;
-      }
-      button:disabled {
-        opacity: 0.6;
-        cursor: default;
-      }
-      pre {
-        background: #212529;
-        color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 4px;
-        overflow: auto;
-        font-size: 0.9rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>ToThread Web Client</h1>
-      <p>
-        Sign in with Google, then fetch your todos from the protected
-        <code>/todos</code> endpoint.
-      </p>
+    if (url.pathname === "/style.css") {
+      return new Response(css, {
+        status: 200,
+        headers: {
+          "content-type": "text/css; charset=utf-8",
+        },
+      });
+    }
 
-      <div id="auth-section">
-        <div id="g_id_signin"></div>
-        <p id="auth-status">Not signed in.</p>
-      </div>
+    if (url.pathname === "/main.js") {
+      return new Response(js, {
+        status: 200,
+        headers: {
+          "content-type": "application/javascript; charset=utf-8",
+        },
+      });
+    }
 
-      <div style="margin-top: 1rem">
-        <button id="fetch-todos" disabled>Fetch /todos</button>
-      </div>
-
-      <h2 style="margin-top: 2rem">Response</h2>
-      <pre id="output">(no response yet)</pre>
-    </div>
-
-    <script>
-      const CLIENT_ID =
-        "130905058858-07408ql1m1nonfoaftc415t0er256n5v.apps.googleusercontent.com";
-
-      let idToken = null;
-
-      function setStatus(text) {
-        document.getElementById("auth-status").textContent = text;
-      }
-
-      function setOutput(obj) {
-        const el = document.getElementById("output");
-        el.textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
-      }
-
-      window.handleCredentialResponse = (response) => {
-        idToken = response.credential;
-        setStatus("Signed in. ID token acquired.");
-        document.getElementById("fetch-todos").disabled = false;
-      };
-
-      window.onload = () => {
-        if (!window.google || !window.google.accounts || !window.google.accounts.id) {
-          setStatus("Google Identity Services not loaded.");
-          return;
-        }
-
-        google.accounts.id.initialize({
-          client_id: CLIENT_ID,
-          callback: window.handleCredentialResponse,
-        });
-
-        google.accounts.id.renderButton(document.getElementById("g_id_signin"), {
-          theme: "outline",
-          size: "large",
-        });
-
-        google.accounts.id.prompt();
-
-        document.getElementById("fetch-todos").addEventListener("click", async () => {
-          if (!idToken) {
-            setStatus("No ID token. Please sign in first.");
-            return;
-          }
-          try {
-            const res = await fetch("/todos", {
-              method: "GET",
-              headers: {
-                Authorization: "Bearer " + idToken,
-              },
-            });
-            const data = await res.json();
-            setOutput(data);
-          } catch (err) {
-            setOutput({ error: String(err) });
-          }
-        });
-      };
-    </script>
-  </body>
-</html>`;
-
-    return new Response(html, {
-      status: 200,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-      },
-    });
+    return new Response("Not found", { status: 404 });
   },
 };
