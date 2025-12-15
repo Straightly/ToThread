@@ -5,40 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attention - Todo Manager</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>📝 Attention - Todo Manager</h1>
-            <p class="subtitle">Manage your todos and sync to GitHub</p>
+            <p class="subtitle">Manage your todos</p>
         </header>
 
+        <!-- Google sign-in section for ToThread backend -->
         <div id="setup-section" class="section">
-            <h2>🔐 GitHub Authentication</h2>
-            <p>Enter your GitHub Personal Access Token to get started. Your token will be stored securely in your browser.</p>
-            
-            <div class="token-instructions">
-                <h3>How to create a token:</h3>
-                <ol>
-                    <li>Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Settings → Personal Access Tokens</a></li>
-                    <li>Click <strong>"Generate new token"</strong> (Fine-grained)</li>
-                    <li><strong>Token name:</strong> Attention Todo App</li>
-                    <li><strong>Repository access:</strong> Only select repositories → <strong>Straightly/attention</strong></li>
-                    <li><strong>Permissions:</strong> Repository permissions → <strong>Contents</strong> → Read and write</li>
-                    <li>Click <strong>"Generate token"</strong> and copy it</li>
-                </ol>
-            </div>
-            
-            <div class="token-input-form">
-                <label for="token-input">GitHub Personal Access Token:</label>
-                <input type="password" id="token-input" placeholder="github_pat_xxxxxxxxxxxxx..." />
-                <div class="token-actions">
-                    <button id="save-token" class="btn btn-primary">Save & Connect</button>
-                    <button id="show-token" class="btn btn-secondary">👁️ Show</button>
-                </div>
-            </div>
-            
-            <div id="connection-status"></div>
+            <h2>🔐 Sign in with Google</h2>
+            <p class="subtitle">Sign in to access your todos via the ToThread backend.</p>
+            <div id="g_id_signin"></div>
+            <p id="auth-status" class="status">Not signed in.</p>
         </div>
 
         <div id="app-section" class="section" style="display: none;">
@@ -68,7 +49,7 @@
             <div id="todo-list" class="todo-list"></div>
 
             <div class="actions">
-                <button id="save-changes" class="btn btn-success" disabled>💾 Save & Commit to GitHub</button>
+                <button id="save-changes" class="btn btn-success" disabled>💾 Save Changes</button>
                 <span id="changes-indicator"></span>
             </div>
 
@@ -100,11 +81,60 @@
     </div>
 
     <script src="config.js"></script>
-    <script src="js/token-manager.js"></script>
-    <script src="js/github-api.js"></script>
     <script src="js/todo-manager.js"></script>
     <script src="js/writing-manager.js"></script>
+    <script src="js/tothread-api.js"></script>
+    <script src="js/tothread-file-api.js"></script>
     <script src="js/todo-ui.js"></script>
     <script src="js/app.js"></script>
+
+    <script>
+      // Google Identity Services integration for ToThread UI
+      const CLIENT_ID =
+        "130905058858-07408ql1m1nonfoaftc415t0er256n5v.apps.googleusercontent.com";
+
+      function setAuthStatus(text) {
+        const el = document.getElementById("auth-status");
+        if (el) el.textContent = text;
+      }
+
+      window.handleCredentialResponse = (response) => {
+        const idToken = response && response.credential;
+        if (!idToken) {
+          setAuthStatus("Failed to obtain ID token.");
+          return;
+        }
+
+        try {
+          if (window.ToThreadAuth && typeof window.ToThreadAuth.setIdToken === "function") {
+            window.ToThreadAuth.setIdToken(idToken);
+            setAuthStatus("Signed in. Loading todos...");
+          } else {
+            setAuthStatus("Backend auth wiring (ToThreadAuth) is not ready.");
+          }
+        } catch (e) {
+          setAuthStatus("Error initializing app: " + e);
+        }
+      };
+
+      window.onload = () => {
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+          setAuthStatus("Google Identity Services not loaded.");
+          return;
+        }
+
+        google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: window.handleCredentialResponse,
+        });
+
+        google.accounts.id.renderButton(document.getElementById("g_id_signin"), {
+          theme: "outline",
+          size: "large",
+        });
+
+        google.accounts.id.prompt();
+      };
+    </script>
 </body>
 </html>
