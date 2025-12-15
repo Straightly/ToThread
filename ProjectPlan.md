@@ -147,31 +147,31 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 **Goal:** Build a new ToThread-native Todo web UI that uses Google login and `/todos` (KV-backed) directly, following `ToThread/ToDoApp-Spec.md`, without legacy GitHub/PAT dependencies.
 
-1. **Step 5.1 — Create new UI skeleton**
+1. [ ] **Step 5.1 — Create new UI skeleton**
    - Recreate a minimal `webApp/ui` folder structure (HTML, CSS, JS) focused only on the new ToThread UI.
    - Basic page layout per spec: header, Google sign-in section, app section with todo list and (placeholder) raw writing area.
 
-2. **Step 5.2 — Wire Google Identity Services into the new UI**
+2. [ ] **Step 5.2 — Wire Google Identity Services into the new UI**
    - Add the GIS script and sign-in button.
    - On successful sign-in, obtain an ID token and pass it into a small auth/init helper (e.g., `ToThreadAuth.setIdToken`).
 
-3. **Step 5.3 — Implement frontend `/todos` client and state manager**
+3. [ ] **Step 5.3 — Implement frontend `/todos` client and state manager**
    - Implement a lightweight JS client for `GET /todos` and `PUT /todos` using the ID token.
    - Implement a todo state manager per spec (load, add, edit, toggle, track `hasChanges`, parse tags).
 
-4. **Step 5.4 — Implement todo list UI interactions**
+4. [ ] **Step 5.4 — Implement todo list UI interactions**
    - Render todos with checkboxes, inline editing, tag chips, and show-completed toggle.
    - Implement tag filter behavior and empty states.
 
-5. **Step 5.5 — Implement save/refresh behavior**
+5. [ ] **Step 5.5 — Implement save/refresh behavior**
    - Add a `Save Changes` button that calls `PUT /todos` with the full list.
    - Add a `Refresh` button that reloads from `GET /todos`, with a clear behavior around unsaved changes.
 
-6. **Step 5.6 — Handle errors and auth failures gracefully**
+6. [ ] **Step 5.6 — Handle errors and auth failures gracefully**
    - Surface backend error messages in the UI (auth errors, KV issues, network failures).
    - Provide clear messages when the user is not in the allowlist.
 
-7. **Step 5.7 — Stub/disable raw writing save**
+7. [ ] **Step 5.7 — Stub/disable raw writing save**
    - Keep the raw writing section visually present but have its save action show a "not yet implemented" message until Phase 6 and 7 are complete.
 
 **Exit criteria:**

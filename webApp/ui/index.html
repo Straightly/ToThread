@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attention - Todo Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 Attention - Todo Manager</h1>
+      <p class="subtitle">Manage your todos</p>
+    </header>
+
+    <section id="setup-section" class="section">
+      <h2>🔐 Sign in with Google</h2>
+      <p class="subtitle">Sign in to access your todos via the ToThread backend.</p>
+      <div id="g_id_signin"></div>
+      <p id="auth-status" class="status">Not signed in.</p>
+    </section>
+
+    <section id="app-section" class="section" style="display: none;">
+      <div class="controls">
+        <div class="file-info">
+          <span class="file-label">📄 Todos</span>
+          <button id="refresh-file" class="btn btn-secondary">🔄 Refresh</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="new-todo">
+        <input
+          type="text"
+          id="new-todo"
+          placeholder="What needs attention? Add tags like #work #idea"
+        />
+        <button id="add-todo-btn" class="btn btn-primary">➕ Add</button>
+      </div>
+
+      <div id="tag-filters" class="tag-filters"></div>
+
+      <div class="todo-list-header">
+        <div class="header-checkbox">
+          <input type="checkbox" id="show-completed-toggle" />
+          <label for="show-completed-toggle">👁️ Show Completed</label>
+        </div>
+      </div>
+
+      <div id="todo-list" class="todo-list"></div>
+
+      <div class="actions">
+        <button id="save-changes" class="btn btn-success" disabled>💾 Save Changes</button>
+        <span id="changes-indicator"></span>
+      </div>
+
+      <hr class="divider" />
+
+      <section class="raw-writing-section">
+        <h2>✍️ Capture Raw Writing</h2>
+        <p class="subtitle">Quick capture for spontaneous thoughts and ideas</p>
+        <div class="writing-input">
+          <textarea
+            id="raw-writing-text"
+            rows="6"
+            placeholder="Raw writing capture is not yet wired to the backend."
+          ></textarea>
+        </div>
+        <button id="save-writing-btn" class="btn btn-secondary" disabled>
+          💾 Save Raw Writing (coming later)
+        </button>
+        <div id="writing-status" class="status"></div>
+      </section>
+    </section>
+
+    <footer>
+      <p>Made with ❤️ for organizing your thoughts</p>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
