@@ -143,10 +143,50 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 5 — Raw Writing Capture APIs
+## Phase 5 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
+
+**Goal:** Build a new ToThread-native Todo web UI that uses Google login and `/todos` (KV-backed) directly, following `ToThread/ToDoApp-Spec.md`, without legacy GitHub/PAT dependencies.
+
+1. **Step 5.1 — Create new UI skeleton**
+   - Recreate a minimal `webApp/ui` folder structure (HTML, CSS, JS) focused only on the new ToThread UI.
+   - Basic page layout per spec: header, Google sign-in section, app section with todo list and (placeholder) raw writing area.
+
+2. **Step 5.2 — Wire Google Identity Services into the new UI**
+   - Add the GIS script and sign-in button.
+   - On successful sign-in, obtain an ID token and pass it into a small auth/init helper (e.g., `ToThreadAuth.setIdToken`).
+
+3. **Step 5.3 — Implement frontend `/todos` client and state manager**
+   - Implement a lightweight JS client for `GET /todos` and `PUT /todos` using the ID token.
+   - Implement a todo state manager per spec (load, add, edit, toggle, track `hasChanges`, parse tags).
+
+4. **Step 5.4 — Implement todo list UI interactions**
+   - Render todos with checkboxes, inline editing, tag chips, and show-completed toggle.
+   - Implement tag filter behavior and empty states.
+
+5. **Step 5.5 — Implement save/refresh behavior**
+   - Add a `Save Changes` button that calls `PUT /todos` with the full list.
+   - Add a `Refresh` button that reloads from `GET /todos`, with a clear behavior around unsaved changes.
+
+6. **Step 5.6 — Handle errors and auth failures gracefully**
+   - Surface backend error messages in the UI (auth errors, KV issues, network failures).
+   - Provide clear messages when the user is not in the allowlist.
+
+7. **Step 5.7 — Stub/disable raw writing save**
+   - Keep the raw writing section visually present but have its save action show a "not yet implemented" message until Phase 6 and 7 are complete.
+
+**Exit criteria:**
+- A new `ToThread/webApp/ui` exists that:
+  - Uses Google login to obtain an ID token.
+  - Loads and saves todos via `/todos` against KV.
+  - Provides the core todo management experience (view, add, edit, complete, filter by tags, save, refresh).
+  - Does not depend on GitHub or a PAT.
+  - Shows a clear non-functional stub for raw writing.
+
+---
+
+## Phase 6 — Raw Writing Capture APIs
 
 **Goal:** Provide authenticated endpoints to add new raw writings into KV.
-
 1. **Step 5.1 — Implement `POST /writings`**
    - Authenticated + allowlisted.
    - Accepts JSON body including at least:
@@ -167,70 +207,4 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 6 — Frontend Integration (ToDoApp & Future Clients)
-
-**Goal:** Prepare ToDoApp and any future clients to use the new backend.
-
-1. **Step 6.1 — Define frontend API contract**
-   - Document the exact request/response shapes for:
-     - `GET /todos`
-     - `PUT /todos`
-     - `POST /writings`
-   - Include auth expectations (Google ID token header, etc.).
-
-2. **Step 6.2 — Adapt existing ToDoApp config**
-   - Replace GitHub API configuration in `ToDoApp/config.js` with base URL for ToThread backend.
-   - Plan incremental migration (e.g., switch reads first, then writes).
-
-3. **Step 6.3 — Port existing ToDoApp UI into `ToThread/webApp/ui` (todos only)**
-   - Copy as much of the existing ToDoApp browser UI code as practical into `ToThread/webApp/ui`.
-   - Replace GitHub-backed data access in that UI with calls to the new authenticated `GET /todos` and `PUT /todos` endpoints.
-   - Leave raw writing features pointing at their current implementation for now; add new APIs and UI wiring for writings in Phase 5 / a later frontend pass.
-
-4. **Step 6.4 — Rewire ToThread UI from GitHub PAT to Google + `/todos`**
-   - Add a thin adapter layer so `TodoManager` can call `ToThreadAPI` (using `GET /todos` and `PUT /todos`) without large internal changes.
-   - Update the ToThread UI `app.js` to:
-     - Obtain a Google ID token via Google Identity Services.
-     - Pass that token into `ToThreadAPI`.
-     - Construct `TodoManager` against the ToThread adapter instead of `GitHubAPI`.
-   - Remove the GitHub Personal Access Token setup UI and GitHub-specific logic from the ToThread web UI.
-   - Keep the raw writing section visible but disable the "Save Raw Writing" action (or show a clear "not yet implemented" message) until the new writing backend (Phase 5) is available.
-
-   6.4.1: Add the thin adapter for ToThreadAPI → TodoManager.
-6.4.2: Change app.js to use the adapter and Google ID tokens.
-6.4.3: Remove PAT UI / GitHub logic.
-6.4.4: Disable raw writing save.
-
-5. **Step 6.5 — Gradual switchover**
-   - For development: add a “backend mode” switch (GitHub vs Cloudflare) to test safely (in the original ToDoApp repo and/or in the new ToThread UI).
-   - Once stable, make Cloudflare backend the default for todos.
-
-**Exit criteria:**
-- ToDoApp can load and save todos and raw writings via the ToThread Cloudflare backend.
-- Old GitHub-API flow can be retired or left as a fallback if desired.
-
----
-
-## Phase 7 — Hardening & Operations (Optional)
-
-1. **Logging & Observability**
-   - Add structured logging for auth failures, KV errors, and unexpected conditions.
-
-2. **Backup & Export**
-   - Design an export path for todos and writings (e.g., periodic dump to R2, or downloadable JSON).
-
-3. **Security Review**
-   - Double-check token validation, allowed origins (CORS), and KV key naming.
-
-4. **Documentation**
-   - Document setup steps, environment variables, KV namespace creation, and how to update the allowlist key.
-
----
-
-## Next Action When We Resume
-
-When you’re ready to start implementation, we will:
-
-1. Create the Cloudflare Worker skeleton for ToThread in a `backend/` folder under this repo (Phase 1.1).
-2. Configure a KV namespace for `TOTHREAD_KV` and verify a trivial get/put.
-3. Then move on to the KV data model (Phase 2) and Google login integration (Phase 3).
+## Phase 7 — Implement UI to allow raw writing using API implemented in 6.
