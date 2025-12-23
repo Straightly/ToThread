@@ -409,6 +409,7 @@ window.handleCredentialResponse = (response) => {
   }
 
   window.ToThreadAuth.idToken = idToken;
+  localStorage.setItem('google_id_token', idToken);
   setAuthStatus("Signed in. Loading todos...");
 
   // Step 5.3: load todos immediately after sign-in.

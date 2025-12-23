@@ -415,6 +415,209 @@ export default {
       }
     }
 
+    if (request.method === "GET" && url.pathname === "/threads") {
+      try {
+        const token = parseAuthorizationHeader(request);
+        const { email } = await verifyGoogleIdToken(token, env);
+
+        const allowed = await isAllowed(env, email);
+        if (!allowed) {
+          return jsonResponse(
+            { error: "forbidden", message: "User is not in allowlist" },
+            403
+          );
+        }
+
+        const threadsPath = "Writing/Threads";
+        const urlToCall = buildGiteaContentsUrl(env, threadsPath);
+        
+        let files;
+        try {
+          files = await giteaRequest(env, urlToCall, "GET");
+        } catch (err) {
+          if (String(err).includes("404") || String(err).includes("not found")) {
+            return jsonResponse({ status: "ok", threads: [] }, 200);
+          }
+          throw err;
+        }
+
+        if (!Array.isArray(files)) {
+          return jsonResponse({ status: "ok", threads: [] }, 200);
+        }
+
+        const threads = files
+          .filter(f => f.type === "file" && f.name && f.name.endsWith(".md"))
+          .map(f => f.name.replace(/\.md$/, ""))
+          .sort();
+
+        return jsonResponse({ status: "ok", threads }, 200);
+      } catch (err) {
+        const msg = err && err.message ? err.message : String(err);
+        const isAuthError =
+          msg.includes("Missing ID token") ||
+          msg.includes("ID token") ||
+          msg.includes("Unexpected token issuer") ||
+          msg.includes("audience");
+        return jsonResponse(
+          { error: isAuthError ? "unauthorized" : "server_error", message: msg },
+          isAuthError ? 401 : 500
+        );
+      }
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/threads/") && url.pathname !== "/threads/") {
+      try {
+        const token = parseAuthorizationHeader(request);
+        const { email } = await verifyGoogleIdToken(token, env);
+
+        const allowed = await isAllowed(env, email);
+        if (!allowed) {
+          return jsonResponse(
+            { error: "forbidden", message: "User is not in allowlist" },
+            403
+          );
+        }
+
+        const tag = url.pathname.replace("/threads/", "");
+        if (!tag || tag.includes("/") || tag.includes("\\")) {
+          return jsonResponse(
+            { error: "bad_request", message: "Invalid thread tag" },
+            400
+          );
+        }
+
+        const repoPath = `Writing/Threads/${tag}.md`;
+        const urlToCall = buildGiteaContentsUrl(env, repoPath);
+
+        let fullContent = "";
+        try {
+          const fileData = await giteaRequest(env, urlToCall, "GET");
+          if (fileData && fileData.content) {
+            fullContent = atob(fileData.content);
+          }
+        } catch (err) {
+          if (String(err).includes("404") || String(err).includes("not found")) {
+            return jsonResponse({ status: "ok", tag, lines: [], fullContent: "" }, 200);
+          }
+          throw err;
+        }
+
+        const allLines = fullContent.split("\n");
+        const last30Lines = allLines.slice(-30);
+
+        return jsonResponse(
+          {
+            status: "ok",
+            tag,
+            lines: last30Lines,
+            fullContent,
+            totalLines: allLines.length,
+          },
+          200
+        );
+      } catch (err) {
+        const msg = err && err.message ? err.message : String(err);
+        const isAuthError =
+          msg.includes("Missing ID token") ||
+          msg.includes("ID token") ||
+          msg.includes("Unexpected token issuer") ||
+          msg.includes("audience");
+        return jsonResponse(
+          { error: isAuthError ? "unauthorized" : "server_error", message: msg },
+          isAuthError ? 401 : 500
+        );
+      }
+    }
+
+    if (request.method === "POST" && url.pathname.startsWith("/threads/")) {
+      try {
+        const token = parseAuthorizationHeader(request);
+        const { email } = await verifyGoogleIdToken(token, env);
+
+        const allowed = await isAllowed(env, email);
+        if (!allowed) {
+          return jsonResponse(
+            { error: "forbidden", message: "User is not in allowlist" },
+            403
+          );
+        }
+
+        const tag = url.pathname.replace("/threads/", "");
+        if (!tag || tag.includes("/") || tag.includes("\\")) {
+          return jsonResponse(
+            { error: "bad_request", message: "Invalid thread tag" },
+            400
+          );
+        }
+
+        const body = await request.json().catch(() => null);
+        const content = body && typeof body.content === "string" ? body.content : "";
+        if (!content.trim()) {
+          return jsonResponse(
+            { error: "bad_request", message: "Body must include non-empty 'content'" },
+            400
+          );
+        }
+
+        const repoPath = `Writing/Threads/${tag}.md`;
+        const urlToCall = buildGiteaContentsUrl(env, repoPath);
+        const branch = env.GIT_BRANCH || "main";
+
+        let existingContent = "";
+        let sha = null;
+        try {
+          const fileData = await giteaRequest(env, urlToCall, "GET");
+          if (fileData && fileData.content) {
+            existingContent = atob(fileData.content);
+          }
+          sha = fileData?.sha || null;
+        } catch (err) {
+          if (!String(err).includes("404") && !String(err).includes("not found")) {
+            throw err;
+          }
+        }
+
+        const timestamp = new Date().toISOString();
+        const newEntry = `\n## ${timestamp}\n\n${content.trim()}\n`;
+        const updatedContent = existingContent + newEntry;
+        const encodedContent = base64EncodeUtf8(updatedContent);
+
+        const payload = {
+          content: encodedContent,
+          message: `Add entry to ${tag} thread - ${timestamp}`,
+          branch,
+        };
+        if (sha) {
+          payload.sha = sha;
+        }
+
+        const result = await giteaRequest(env, urlToCall, sha ? "PUT" : "POST", payload);
+
+        return jsonResponse(
+          {
+            status: "ok",
+            email,
+            tag,
+            path: repoPath,
+            timestamp,
+            gitea: result,
+          },
+          200
+        );
+      } catch (err) {
+        const msg = err && err.message ? err.message : String(err);
+        const isAuthError =
+          msg.includes("Missing ID token") ||
+          msg.includes("ID token") ||
+          msg.includes("Unexpected token issuer") ||
+          msg.includes("audience");
+        return jsonResponse(
+          { error: isAuthError ? "unauthorized" : "server_error", message: msg },
+          isAuthError ? 401 : 500
+        );
+      }
+    }
+
     if (url.pathname === "/kv-test") {
       const key = "tothread:kv-test";
       const existing = await env.TOTHREAD_KV.get(key);

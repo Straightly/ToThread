@@ -214,30 +214,31 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ### Steps:
 
-- [ ] **Step 6.1 — Design thread journal data model and file structure** *(0.5 hours)*
-  - Decide on thread file naming: `Threads/<tag>.md` (e.g., `Threads/work.md`, `Threads/personal.md`).
-  - Define markdown format for journal entries: timestamp header + content.
-  - Decide how to maintain the list of available tags (hardcoded initial list, or dynamic discovery from repo).
+- [X] **Step 6.1 — Design thread journal data model and file structure** *(0.5 hours)*
+  - **Decision:** Thread files stored in `Writing/Threads/<tag>.md` (e.g., `Writing/Threads/work.md`, `Writing/Threads/personal.md`).
+  - **Decision:** Markdown format for journal entries: ISO timestamp header + content.
+  - **Decision:** Tags are discovered dynamically by listing filenames in `Writing/Threads/` folder via Gitea API. User creates new tags by adding files directly to the repo.
 
-- [ ] **Step 6.2 — Implement backend `GET /threads` endpoint** *(1 hour)*
+- [X] **Step 6.2 — Implement backend `GET /threads` endpoint** *(1 hour)*
   - Authenticated + allowlisted.
-  - Returns a JSON array of available thread tags by listing files in `Threads/` folder via Gitea API.
+  - Returns a JSON array of available thread tags by listing files in `Writing/Threads/` folder via Gitea API.
   - Example response: `{ "threads": ["work", "personal", "ideas"] }`.
 
-- [ ] **Step 6.3 — Implement backend `GET /threads/:tag` endpoint** *(1.5 hours)*
+- [X] **Step 6.3 — Implement backend `GET /threads/:tag` endpoint** *(1.5 hours)*
   - Authenticated + allowlisted.
-  - Fetches the content of `Threads/<tag>.md` from Gitea.
-  - Parses the file and returns the last 30 lines (or last N entries based on timestamp headers).
-  - Returns JSON: `{ "tag": "work", "entries": [...], "fullContent": "..." }`.
+  - Fetches the content of `Writing/Threads/<tag>.md` from Gitea.
+  - Parses the file and returns the last 30 lines.
+  - Returns JSON: `{ "tag": "work", "lines": [...], "fullContent": "...", "totalLines": N }`.
   - Handle case where thread file doesn't exist yet (return empty).
 
-- [ ] **Step 6.4 — Implement backend `POST /threads/:tag` endpoint** *(1.5 hours)*
+- [X] **Step 6.4 — Implement backend `POST /threads/:tag` endpoint** *(1.5 hours)*
   - Authenticated + allowlisted.
   - Accepts JSON: `{ "content": "..." }`.
-  - Fetches current `Threads/<tag>.md` content (or creates new file if doesn't exist).
-  - Appends new entry with ISO timestamp and content.
+  - Fetches current `Writing/Threads/<tag>.md` content (or creates new file if doesn't exist).
+  - Appends new entry with ISO timestamp header (`## 2025-12-23T07:45:00.498Z`) and content.
   - Commits updated file to Gitea with message like "Add entry to <tag> thread".
   - Returns success response with commit info.
+  - **Tested:** Successfully appended to DevSyncMeeting thread.
 
 - [ ] **Step 6.5 — Add thread journal UI section to the web app** *(1.5 hours)*
   - Add a new "Threaded Journals" section in `backend/ui/index.html`.
