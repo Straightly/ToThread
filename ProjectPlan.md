@@ -200,33 +200,107 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 6 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
+## Phase 6 — Threaded Journal Capability
+
+**Goal:** Extend the raw writing feature to support tag-based threaded journals. Each tag corresponds to a journal file in the `Threads/` folder. Users can select a tag, view the last 30 lines of that journal, and append timestamped entries.
+
+**Key Features:**
+- Display a list of journal tags (threads) in the UI.
+- Clicking a tag loads and displays the last 30 lines from `Threads/<tag>.md`.
+- Text entered in the journal editor is appended to the selected thread file with a timestamp.
+- All operations use the Gitea API (similar to raw writings).
+
+**Estimated Total Time:** ~8-10 hours
+
+### Steps:
+
+- [ ] **Step 6.1 — Design thread journal data model and file structure** *(0.5 hours)*
+  - Decide on thread file naming: `Threads/<tag>.md` (e.g., `Threads/work.md`, `Threads/personal.md`).
+  - Define markdown format for journal entries: timestamp header + content.
+  - Decide how to maintain the list of available tags (hardcoded initial list, or dynamic discovery from repo).
+
+- [ ] **Step 6.2 — Implement backend `GET /threads` endpoint** *(1 hour)*
+  - Authenticated + allowlisted.
+  - Returns a JSON array of available thread tags by listing files in `Threads/` folder via Gitea API.
+  - Example response: `{ "threads": ["work", "personal", "ideas"] }`.
+
+- [ ] **Step 6.3 — Implement backend `GET /threads/:tag` endpoint** *(1.5 hours)*
+  - Authenticated + allowlisted.
+  - Fetches the content of `Threads/<tag>.md` from Gitea.
+  - Parses the file and returns the last 30 lines (or last N entries based on timestamp headers).
+  - Returns JSON: `{ "tag": "work", "entries": [...], "fullContent": "..." }`.
+  - Handle case where thread file doesn't exist yet (return empty).
+
+- [ ] **Step 6.4 — Implement backend `POST /threads/:tag` endpoint** *(1.5 hours)*
+  - Authenticated + allowlisted.
+  - Accepts JSON: `{ "content": "..." }`.
+  - Fetches current `Threads/<tag>.md` content (or creates new file if doesn't exist).
+  - Appends new entry with ISO timestamp and content.
+  - Commits updated file to Gitea with message like "Add entry to <tag> thread".
+  - Returns success response with commit info.
+
+- [ ] **Step 6.5 — Add thread journal UI section to the web app** *(1.5 hours)*
+  - Add a new "Threaded Journals" section in `backend/ui/index.html`.
+  - Display list of thread tags as clickable buttons/chips.
+  - Add a text area for viewing/editing the selected thread.
+  - Add "Save Entry" button to append content to the selected thread.
+  - Show loading states and selected thread indicator.
+
+- [ ] **Step 6.6 — Wire frontend to thread journal APIs** *(1.5 hours)*
+  - On page load (after auth), fetch available threads via `GET /threads`.
+  - When user clicks a tag, fetch and display last 30 lines via `GET /threads/:tag`.
+  - When user clicks "Save Entry", call `POST /threads/:tag` with text area content.
+  - Clear text area after successful save.
+  - Show success/error messages.
+
+- [ ] **Step 6.7 — Style the threaded journal UI** *(1 hour)*
+  - Style thread tag list (similar to todo tag chips).
+  - Style the journal viewer (monospace font, clear entry separators).
+  - Style the entry editor text area.
+  - Ensure responsive layout and visual consistency with existing UI.
+
+- [ ] **Step 6.8 — Test end-to-end thread journal flow** *(0.5 hours)*
+  - Create a new thread by posting to a non-existent tag.
+  - Append multiple entries to the same thread.
+  - Verify entries appear with timestamps in the Gitea repo.
+  - Verify last 30 lines display correctly.
+  - Test with multiple different thread tags.
+
+**Exit criteria:**
+- User can view a list of thread tags in the UI.
+- Clicking a tag loads and displays the last 30 lines from that thread's journal file.
+- User can type in a text area and save entries that are appended with timestamps to the selected thread file in `Threads/` folder.
+- All changes are committed to the Gitea repository.
+
+---
+
+## Phase 7 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
 
 ...
 
 ---
 
-## Phase 7 — Refactor WebApp Code Structure and Assets
+## Phase 8 — Refactor WebApp Code Structure and Assets
 
 ...
 
 ---
 
-## Phase 8 — (Later) Move Todos Back to Git Repo Storage
+## Phase 9 — (Later) Move Todos Back to Git Repo Storage
 
 **Goal:** After raw writing is stable, migrate the ToDo list storage from KV back to Git-repo storage.
 
-- [ ] **Step 7.1 — Reintroduce Git-based ToDo file (`ToDos/List.json`) writes**
-- [ ] **Step 7.2 — Decide conflict strategy (SHA/versioning vs last-write-wins)**
-- [ ] **Step 7.3 — Migrate existing KV todos into the repo and cut over**
+- [ ] **Step 9.1 — Reintroduce Git-based ToDo file (`ToDos/List.json`) writes**
+- [ ] **Step 9.2 — Decide conflict strategy (SHA/versioning vs last-write-wins)**
+- [ ] **Step 9.3 — Migrate existing KV todos into the repo and cut over**
 
 ---
 
-## Phase 9 — Tidy up
+## Phase 10 — Tidy up
 
 ...
 
-1. **Step 8.1 — Handle errors and auth failures gracefully in the UI**
+1. **Step 10.1 — Handle errors and auth failures gracefully in the UI**
    - Surface backend error messages in the UI (auth errors, KV issues, network failures).
    - Provide clear messages when the user is not in the allowlist.
 
@@ -238,4 +312,4 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 10 — Implement UI to allow raw writing using API implemented in 6.
+## Phase 11 — Implement UI to allow raw writing using API implemented in 6.
