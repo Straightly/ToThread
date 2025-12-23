@@ -166,31 +166,31 @@ This backend will eventually replace the GitHub-API-based storage model used by 
      - `GIT_BRANCH` (e.g., `main`)
    - Add a secret for the token (e.g., `GIT_TOKEN_ATTENTION`) via `wrangler secret put`.
 
-- [ ] **Step 5.4 — Configure Public Domain and SSL for Gitea**
+- [X] **Step 5.4 — Configure Public Domain and SSL for Gitea**
    - **Goal:** Secure the Gitea server with a valid SSL certificate so Cloudflare Workers can communicate with it (Cloudflare does not support self-signed certs).
    - Register a domain (or use a subdomain).
    - Point DNS to the Gitea server IP (`146.235.203.97`).
    - Configure a reverse proxy (Nginx/Caddy) or Gitea with a valid Let's Encrypt certificate.
    - **Verify:** `curl https://<your-domain>/api/v1/...` works without `--insecure`.
 
-- [ ] **Step 5.5 — Implement a minimal Gitea client in the Worker**
+- [X] **Step 5.5 — Implement a minimal Gitea client in the Worker**
    - Implement Worker-side helper functions:
      - `giteaRequest(path, method, body)`
      - `createOrUpdateFile({ path, contentBase64, message, branch })`
    - Keep it narrowly scoped to “create a new file with commit message”.
 
-- [ ] **Step 5.6 — Add `POST /writings` endpoint (Git-backed)**
+- [X] **Step 5.6 — Add `POST /writings` endpoint (Git-backed)**
    - Authenticated + allowlisted.
    - Input JSON: `{ content: string }` (plus optional `title/tags`).
    - Server generates filename (timestamp + slug) and produces markdown body (can reuse the ToDoApp template behavior).
    - Worker commits the file to the repo via the Gitea API.
    - Response: `{ status: "ok", path, commitId }` (or equivalent).
 
-- [ ] **Step 5.7 — Add a debug endpoint for verifying connectivity (optional)**
+- [X] **Step 5.7 — Add a debug endpoint for verifying connectivity (optional)**
    - Example: `GET /debug/git` (allowlisted) returns `{ status: "ok" }` if token works.
    - Keep secrets out of responses.
 
-- [ ] **Step 5.8 — Wire the frontend raw-writing UI to `POST /writings`**
+- [X] **Step 5.8 — Wire the frontend raw-writing UI to `POST /writings`**
    - Update the UI “Save Raw Writing” button to call the Worker endpoint.
    - Confirm: a new file appears in `Writing/RawWrittings/` in the Gitea repo.
 

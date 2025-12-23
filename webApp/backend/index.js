@@ -259,6 +259,38 @@ export default {
       });
     }
 
+    if (url.pathname === "/debug/git") {
+      try {
+        const token = parseAuthorizationHeader(request);
+        const { email } = await verifyGoogleIdToken(token, env);
+        const allowed = await isAllowed(env, email);
+        if (!allowed) {
+          return jsonResponse({ error: "forbidden", message: "User is not in allowlist" }, 403);
+        }
+
+        const base = ensureTrailingSlash(env.GIT_BASE_URL);
+        const owner = env.GIT_OWNER;
+        const repo = env.GIT_REPO;
+        // Verify connectivity by fetching repo metadata
+        const repoUrl = `${base}api/v1/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+        
+        const result = await giteaRequest(env, repoUrl, "GET");
+        
+        return jsonResponse(
+          { 
+            status: "ok", 
+            email, 
+            repo: result.full_name, 
+            private: result.private,
+            description: result.description
+          }, 
+          200
+        );
+      } catch (err) {
+        return jsonResponse({ status: "error", message: String(err) }, 500);
+      }
+    }
+
     if (request.method === "GET" && url.pathname === "/todos") {
       try {
         const token = parseAuthorizationHeader(request);

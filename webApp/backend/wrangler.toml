@@ -5,7 +5,7 @@ compatibility_date = "2025-11-25"
 [vars]
 # Add non-secret configuration here as needed later (e.g., API base paths).
 GOOGLE_CLIENT_ID = "130905058858-07408ql1m1nonfoaftc415t0er256n5v.apps.googleusercontent.com"
-GIT_BASE_URL = "https://146.235.203.97"
+GIT_BASE_URL = "https://gitea.nothingbuttrust.com"
 GIT_OWNER = "zhian.job"
 GIT_REPO = "attention"
 GIT_BRANCH = "main"
