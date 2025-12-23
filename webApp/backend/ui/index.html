@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attention - Todo Manager</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/ui/style.css" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -64,11 +64,11 @@
           <textarea
             id="raw-writing-text"
             rows="6"
-            placeholder="Raw writing capture is not yet wired to the backend."
+            placeholder="Write something, then click Save Raw Writing to commit it to Git."
           ></textarea>
         </div>
-        <button id="save-writing-btn" class="btn btn-secondary" disabled>
-          💾 Save Raw Writing (coming later)
+        <button id="save-writing-btn" class="btn btn-secondary">
+          💾 Save Raw Writing
         </button>
         <div id="writing-status" class="status"></div>
       </section>
@@ -79,6 +79,6 @@
     </footer>
   </div>
 
-  <script src="main.js"></script>
+  <script src="/ui/main.js"></script>
 </body>
 </html>

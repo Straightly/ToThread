@@ -56,6 +56,10 @@ function markHasChanges() {
   if (indicator) {
     indicator.textContent = "Unsaved changes";
   }
+  const saveBtn = document.getElementById("save-changes");
+  if (saveBtn) {
+    saveBtn.disabled = false;
+  }
 }
 
 function clearChanges() {
@@ -64,6 +68,10 @@ function clearChanges() {
   if (indicator) {
     indicator.textContent = "";
   }
+   const saveBtn = document.getElementById("save-changes");
+   if (saveBtn) {
+     saveBtn.disabled = true;
+   }
 }
 
 function setAuthStatus(text) {
@@ -240,6 +248,8 @@ function wireInteractions() {
   const addInput = document.getElementById("new-todo");
   const addBtn = document.getElementById("add-todo-btn");
   const showCompletedToggle = document.getElementById("show-completed-toggle");
+  const saveBtn = document.getElementById("save-changes");
+  const refreshBtn = document.getElementById("refresh-file");
 
   if (addBtn && addInput) {
     const add = () => {
@@ -265,6 +275,78 @@ function wireInteractions() {
     showCompletedToggle.addEventListener("change", () => {
       window.ToThreadAuth.showCompleted = showCompletedToggle.checked;
       renderTodoList();
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", async () => {
+      if (!window.ToThreadAuth.idToken) {
+        alert("Not signed in.");
+        return;
+      }
+
+      saveBtn.disabled = true;
+      const statusEl = document.getElementById("status");
+      if (statusEl) statusEl.textContent = "Saving...";
+
+      try {
+        const res = await fetch("/todos", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + window.ToThreadAuth.idToken,
+          },
+          body: JSON.stringify(window.ToThreadAuth.todos),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data && data.message ? data.message : `HTTP ${res.status}`;
+          throw new Error(msg);
+        }
+
+        clearChanges();
+        if (statusEl) statusEl.textContent = "Saved todos.";
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent =
+            "Failed to save todos: " + (err && err.message ? err.message : String(err));
+        }
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+  }
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      if (!window.ToThreadAuth.idToken) {
+        alert("Not signed in.");
+        return;
+      }
+
+      if (window.ToThreadAuth.hasChanges) {
+        const proceed = window.confirm(
+          "You have unsaved changes. Refreshing will discard them. Continue?"
+        );
+        if (!proceed) return;
+      }
+
+      const statusEl = document.getElementById("status");
+      if (statusEl) statusEl.textContent = "Refreshing...";
+
+      try {
+        const todos = await fetchTodos();
+        if (statusEl) statusEl.textContent = `Loaded ${todos.length} todos.`;
+        clearChanges();
+        renderTagFilters();
+        renderTodoList();
+      } catch (err) {
+        if (statusEl) {
+          statusEl.textContent =
+            "Failed to refresh todos: " + (err && err.message ? err.message : String(err));
+        }
+      }
     });
   }
 }

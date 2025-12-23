@@ -11,12 +11,14 @@ Build a Cloudflare-hosted backend for ToThread that:
 
 This backend will eventually replace the GitHub-API-based storage model used by the existing ToDoApp and raw writing capture.
 
+**Current focus:** Restore **raw writing capture** (`writeRaw` / `Writing/RawWrittings/*`) using your **self-hosted Git server (Gitea)** as the storage backend. Keep the **ToDo list** on **Cloudflare KV** for now.
+
 ---
 
 ## Assumptions & Constraints
 
 - **Hosting:** Cloudflare Workers (optionally with Cloudflare Pages later).
-- **State:** Cloudflare KV for todos, writings, and the Google-accounts allowlist.
+- **State:** Cloudflare KV for todos and the Google-accounts allowlist. Raw writings will be stored in a Git repository (Gitea) during the current phase.
 - **Auth provider:** Google (OAuth2 / OpenID Connect via an identity flow that runs in the browser and passes tokens to the Worker).
 - **Clients:**
   - Existing browser-based ToDoApp frontend (will be adapted later to call this backend).
@@ -143,62 +145,91 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 5 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
+## Phase 5 — Restore Raw Writing Capture Using Git Repo (Gitea)
 
-**Goal:** Build a new ToThread-native Todo web UI that uses Google login and `/todos` (KV-backed) directly, following `ToThread/ToDoApp-Spec.md`, without legacy GitHub/PAT dependencies.
+**Goal:** Make the “raw writing” path work again by committing a new markdown file into your self-hosted Git repository (Gitea), while keeping `/todos` KV-backed.
 
-1. [X ] **Step 5.1 — Create new UI skeleton**
-   - Recreate a minimal `webApp/ui` folder structure (HTML, CSS, JS) focused only on the new ToThread UI.
-   - Basic page layout per spec: header, Google sign-in section, app section with todo list and (placeholder) raw writing area.
+- [X] **Step 5.1 — Confirm target repo and folder layout**
+   - Decide which repo will store writings (e.g., `attention` on Gitea).
+   - Confirm destination path for new files: `Writing/RawWrittings/<generated>.md`.
+   - Confirm default branch name (e.g., `main`).
 
-2. [X ] **Step 5.2 — Wire Google Identity Services into the new UI**
-   - Add the GIS script and sign-in button.
-   - On successful sign-in, obtain an ID token and pass it into a small auth/init helper (e.g., `ToThreadAuth.setIdToken`).
+- [X] **Step 5.2 — Decide write mechanism (Gitea API vs git push)**
+   - Preferred for Workers: **Gitea HTTP API** (create/update file with commit message).
+   - Alternative: server-side `git` is not available on Workers (so avoid shelling out).
 
-3. [X ] **Step 5.3 — Implement frontend `/todos` client and state manager**
-   - Implement a lightweight JS client for `GET /todos` and `PUT /todos` using the ID token.
-   - Implement a todo state manager per spec (load, add, edit, toggle, track `hasChanges`, parse tags).
+- [X] **Step 5.3 — Add Worker configuration for Git repo writes**
+   - Add non-secret vars in `wrangler.toml`:
+     - `GIT_BASE_URL` (e.g., `https://146.235.203.97`)
+     - `GIT_OWNER` (e.g., `zhian.job`)
+     - `GIT_REPO` (e.g., `attention`)
+     - `GIT_BRANCH` (e.g., `main`)
+   - Add a secret for the token (e.g., `GIT_TOKEN_ATTENTION`) via `wrangler secret put`.
 
-4. [ ] **Step 5.4 — Implement todo list UI interactions**
-   - Render todos with checkboxes, inline editing, tag chips, and show-completed toggle.
-   - Implement tag filter behavior and empty states.
+- [ ] **Step 5.4 — Configure Public Domain and SSL for Gitea**
+   - **Goal:** Secure the Gitea server with a valid SSL certificate so Cloudflare Workers can communicate with it (Cloudflare does not support self-signed certs).
+   - Register a domain (or use a subdomain).
+   - Point DNS to the Gitea server IP (`146.235.203.97`).
+   - Configure a reverse proxy (Nginx/Caddy) or Gitea with a valid Let's Encrypt certificate.
+   - **Verify:** `curl https://<your-domain>/api/v1/...` works without `--insecure`.
 
-5. [ ] **Step 5.5 — Implement save/refresh behavior**
-   - Add a `Save Changes` button that calls `PUT /todos` with the full list.
-   - Add a `Refresh` button that reloads from `GET /todos`, with a clear behavior around unsaved changes.
+- [ ] **Step 5.5 — Implement a minimal Gitea client in the Worker**
+   - Implement Worker-side helper functions:
+     - `giteaRequest(path, method, body)`
+     - `createOrUpdateFile({ path, contentBase64, message, branch })`
+   - Keep it narrowly scoped to “create a new file with commit message”.
 
-6. [ ] **Step 5.6 — Handle errors and auth failures gracefully**
-   - Surface backend error messages in the UI (auth errors, KV issues, network failures).
-   - Provide clear messages when the user is not in the allowlist.
+- [ ] **Step 5.6 — Add `POST /writings` endpoint (Git-backed)**
+   - Authenticated + allowlisted.
+   - Input JSON: `{ content: string }` (plus optional `title/tags`).
+   - Server generates filename (timestamp + slug) and produces markdown body (can reuse the ToDoApp template behavior).
+   - Worker commits the file to the repo via the Gitea API.
+   - Response: `{ status: "ok", path, commitId }` (or equivalent).
 
-7. [ ] **Step 5.7 — Stub/disable raw writing save**
-   - Keep the raw writing section visually present but have its save action show a "not yet implemented" message until Phase 6 and 7 are complete.
+- [ ] **Step 5.7 — Add a debug endpoint for verifying connectivity (optional)**
+   - Example: `GET /debug/git` (allowlisted) returns `{ status: "ok" }` if token works.
+   - Keep secrets out of responses.
+
+- [ ] **Step 5.8 — Wire the frontend raw-writing UI to `POST /writings`**
+   - Update the UI “Save Raw Writing” button to call the Worker endpoint.
+   - Confirm: a new file appears in `Writing/RawWrittings/` in the Gitea repo.
 
 **Exit criteria:**
-- A new `ToThread/webApp/ui` exists that:
-  - Uses Google login to obtain an ID token.
-  - Loads and saves todos via `/todos` against KV.
-  - Provides the core todo management experience (view, add, edit, complete, filter by tags, save, refresh).
-  - Does not depend on GitHub or a PAT.
-  - Shows a clear non-functional stub for raw writing.
+- A raw writing entered in the web UI results in a committed file in the Gitea repo under `Writing/RawWrittings/`.
+- `/todos` continues working with KV (no regression).
 
 ---
 
-## Phase 6 — Raw Writing Capture APIs
+## Phase 6 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
 
-**Goal:** Provide authenticated endpoints to add new raw writings into KV.
-1. **Step 5.1 — Implement `POST /writings`**
-   - Authenticated + allowlisted.
-   - Accepts JSON body including at least:
-     - `content` (string)
-     - Optional metadata (title, tags, timestamp).
-   - Generates an ID (e.g., timestamp-based or UUID) and stores to KV under `writings/<id>`.
+...
 
-2. **Step 5.2 — (Optional) Implement `GET /writings/:id` and/or `GET /writings`**
-   - Allow retrieving specific writings or a list.
-   - Decide whether you need listing now or only writing-creation for capture.
+---
 
-3. **Step 5.3 — Integrate basic indexing if needed**
+## Phase 7 — Refactor WebApp Code Structure and Assets
+
+...
+
+---
+
+## Phase 8 — (Later) Move Todos Back to Git Repo Storage
+
+**Goal:** After raw writing is stable, migrate the ToDo list storage from KV back to Git-repo storage.
+
+- [ ] **Step 7.1 — Reintroduce Git-based ToDo file (`ToDos/List.json`) writes**
+- [ ] **Step 7.2 — Decide conflict strategy (SHA/versioning vs last-write-wins)**
+- [ ] **Step 7.3 — Migrate existing KV todos into the repo and cut over**
+
+---
+
+## Phase 9 — Tidy up
+
+...
+
+1. **Step 8.1 — Handle errors and auth failures gracefully in the UI**
+   - Surface backend error messages in the UI (auth errors, KV issues, network failures).
+   - Provide clear messages when the user is not in the allowlist.
+
    - Optionally maintain an index key (e.g., `writings/index`) listing writing IDs and brief metadata for fast listing.
 
 **Exit criteria:**
@@ -207,4 +238,4 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 ---
 
-## Phase 7 — Implement UI to allow raw writing using API implemented in 6.
+## Phase 10 — Implement UI to allow raw writing using API implemented in 6.
