@@ -16,6 +16,35 @@ window.ToThreadAuth = {
   activeTag: null,
 };
 
+// Auto-save timers for draft protection
+let rawWritingAutoSaveTimer = null;
+let threadEntryAutoSaveTimer = null;
+
+// Auto-save draft to localStorage
+function autoSaveDraft(key, content) {
+  localStorage.setItem(key, content);
+  localStorage.setItem(key + '_timestamp', Date.now().toString());
+}
+
+// Restore draft from localStorage
+function restoreDraft(key) {
+  const draft = localStorage.getItem(key);
+  const timestamp = localStorage.getItem(key + '_timestamp');
+  
+  if (draft && timestamp) {
+    const age = Date.now() - parseInt(timestamp);
+    const ageMinutes = Math.floor(age / 60000);
+    return { draft, ageMinutes };
+  }
+  return null;
+}
+
+// Clear draft from localStorage
+function clearDraft(key) {
+  localStorage.removeItem(key);
+  localStorage.removeItem(key + '_timestamp');
+}
+
 async function fetchTodos() {
   if (!window.ToThreadAuth.idToken) {
     throw new Error("No ID token set; cannot load todos.");
@@ -354,6 +383,17 @@ function wireInteractions() {
   }
 
   if (saveWritingBtn && rawWritingText) {
+    // Auto-save raw writing to localStorage as user types
+    rawWritingText.addEventListener('input', (e) => {
+      clearTimeout(rawWritingAutoSaveTimer);
+      rawWritingAutoSaveTimer = setTimeout(() => {
+        const content = e.target.value;
+        if (content.trim()) {
+          autoSaveDraft('tothread_raw_writing_draft', content);
+        }
+      }, 2000); // 2 seconds debounce
+    });
+
     saveWritingBtn.addEventListener("click", async () => {
       if (!window.ToThreadAuth.idToken) {
         alert("Not signed in.");
@@ -388,11 +428,15 @@ function wireInteractions() {
         const savedPath = data && data.path ? data.path : "(unknown path)";
         if (writingStatus) writingStatus.textContent = `Saved: ${savedPath}`;
         rawWritingText.value = "";
+        
+        // Clear draft after successful save
+        clearDraft('tothread_raw_writing_draft');
       } catch (err) {
         if (writingStatus) {
           writingStatus.textContent =
             "Failed to save raw writing: " +
-            (err && err.message ? err.message : String(err));
+            (err && err.message ? err.message : String(err)) +
+            " (Draft preserved locally)";
         }
       } finally {
         saveWritingBtn.disabled = false;
@@ -504,10 +548,27 @@ async function selectThread(tag) {
   const contentEl = document.getElementById("thread-content");
   const statusEl = document.getElementById("thread-status");
   const viewerContainer = document.getElementById("thread-viewer-container");
+  const entryText = document.getElementById("thread-entry-text");
 
   if (titleEl) titleEl.textContent = `📔 ${tag}`;
   if (viewerContainer) viewerContainer.style.display = "block";
   if (statusEl) statusEl.textContent = "Loading...";
+
+  // Restore draft for this thread if exists
+  if (entryText) {
+    const draftKey = `tothread_thread_entry_draft_${tag}`;
+    const draftData = restoreDraft(draftKey);
+    if (draftData && draftData.draft) {
+      const shouldRestore = confirm(
+        `Found unsaved entry for this thread from ${draftData.ageMinutes} minute(s) ago. Restore it?`
+      );
+      if (shouldRestore) {
+        entryText.value = draftData.draft;
+      } else {
+        clearDraft(draftKey);
+      }
+    }
+  }
 
   try {
     const data = await fetchThreadContent(tag);
@@ -530,6 +591,18 @@ function wireThreadInteractions() {
   const refreshBtn = document.getElementById("refresh-thread-btn");
 
   if (saveBtn && entryText) {
+    // Auto-save thread entry to localStorage as user types
+    entryText.addEventListener('input', (e) => {
+      clearTimeout(threadEntryAutoSaveTimer);
+      threadEntryAutoSaveTimer = setTimeout(() => {
+        const content = e.target.value;
+        if (content.trim() && window.ToThreadAuth.selectedThread) {
+          const draftKey = `tothread_thread_entry_draft_${window.ToThreadAuth.selectedThread}`;
+          autoSaveDraft(draftKey, content);
+        }
+      }, 2000); // 2 seconds debounce
+    });
+
     saveBtn.addEventListener("click", async () => {
       if (!window.ToThreadAuth.selectedThread) {
         alert("Please select a thread first.");
@@ -549,10 +622,14 @@ function wireThreadInteractions() {
         entryText.value = "";
         if (statusEl) statusEl.textContent = "Entry saved!";
         
+        // Clear draft after successful save
+        const draftKey = `tothread_thread_entry_draft_${window.ToThreadAuth.selectedThread}`;
+        clearDraft(draftKey);
+        
         // Refresh thread content
         await selectThread(window.ToThreadAuth.selectedThread);
       } catch (err) {
-        if (statusEl) statusEl.textContent = err.message || "Failed to save entry";
+        if (statusEl) statusEl.textContent = (err.message || "Failed to save entry") + " (Draft preserved locally)";
       }
     });
   }
@@ -656,6 +733,22 @@ window.addEventListener("DOMContentLoaded", () => {
   if (statusEl) {
     statusEl.textContent =
       "UI skeleton loaded. Sign-in is wired; todos will be connected in later steps.";
+  }
+
+  // Restore raw writing draft if exists
+  const rawWritingText = document.getElementById("raw-writing-text");
+  if (rawWritingText) {
+    const draftData = restoreDraft('tothread_raw_writing_draft');
+    if (draftData) {
+      const shouldRestore = confirm(
+        `Found unsaved raw writing from ${draftData.ageMinutes} minute(s) ago. Restore it?`
+      );
+      if (shouldRestore) {
+        rawWritingText.value = draftData.draft;
+      } else {
+        clearDraft('tothread_raw_writing_draft');
+      }
+    }
   }
 
   waitForGoogleIdentity();
