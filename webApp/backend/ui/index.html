@@ -72,6 +72,43 @@
         </button>
         <div id="writing-status" class="status"></div>
       </section>
+
+      <hr class="divider" />
+
+      <section class="threaded-journals-section">
+        <h2>📔 Threaded Journals</h2>
+        <p class="subtitle">Tag-based journals with timestamped entries</p>
+        
+        <div class="thread-controls">
+          <div class="thread-tags" id="thread-tags">
+            <span class="loading">Loading threads...</span>
+          </div>
+        </div>
+
+        <div id="thread-viewer-container" style="display: none;">
+          <div class="thread-header">
+            <h3 id="thread-title">Select a thread</h3>
+            <button id="refresh-thread-btn" class="btn btn-small">🔄 Refresh</button>
+          </div>
+          
+          <div class="thread-viewer" id="thread-viewer">
+            <pre id="thread-content"></pre>
+          </div>
+
+          <div class="thread-editor">
+            <textarea
+              id="thread-entry-text"
+              rows="4"
+              placeholder="Write your journal entry here..."
+            ></textarea>
+            <button id="save-thread-entry-btn" class="btn btn-primary">
+              💾 Save Entry
+            </button>
+          </div>
+          
+          <div id="thread-status" class="status"></div>
+        </div>
+      </section>
     </section>
 
     <footer>

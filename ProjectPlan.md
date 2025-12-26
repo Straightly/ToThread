@@ -240,27 +240,27 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Returns success response with commit info.
   - **Tested:** Successfully appended to DevSyncMeeting thread.
 
-- [ ] **Step 6.5 — Add thread journal UI section to the web app** *(1.5 hours)*
+- [X] **Step 6.5 — Add thread journal UI section to the web app** *(1.5 hours)*
   - Add a new "Threaded Journals" section in `backend/ui/index.html`.
   - Display list of thread tags as clickable buttons/chips.
   - Add a text area for viewing/editing the selected thread.
   - Add "Save Entry" button to append content to the selected thread.
   - Show loading states and selected thread indicator.
 
-- [ ] **Step 6.6 — Wire frontend to thread journal APIs** *(1.5 hours)*
+- [X] **Step 6.6 — Wire frontend to thread journal APIs** *(1.5 hours)*
   - On page load (after auth), fetch available threads via `GET /threads`.
   - When user clicks a tag, fetch and display last 30 lines via `GET /threads/:tag`.
   - When user clicks "Save Entry", call `POST /threads/:tag` with text area content.
   - Clear text area after successful save.
   - Show success/error messages.
 
-- [ ] **Step 6.7 — Style the threaded journal UI** *(1 hour)*
+- [X] **Step 6.7 — Style the threaded journal UI** *(1 hour)*
   - Style thread tag list (similar to todo tag chips).
   - Style the journal viewer (monospace font, clear entry separators).
   - Style the entry editor text area.
   - Ensure responsive layout and visual consistency with existing UI.
 
-- [ ] **Step 6.8 — Test end-to-end thread journal flow** *(0.5 hours)*
+- [X] **Step 6.8 — Test end-to-end thread journal flow** *(0.5 hours)*
   - Create a new thread by posting to a non-existent tag.
   - Append multiple entries to the same thread.
   - Verify entries appear with timestamps in the Gitea repo.

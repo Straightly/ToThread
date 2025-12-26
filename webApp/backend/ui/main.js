@@ -401,6 +401,171 @@ function wireInteractions() {
   }
 }
 
+// Thread journal state
+window.ToThreadAuth.threads = [];
+window.ToThreadAuth.selectedThread = null;
+
+async function fetchThreads() {
+  if (!window.ToThreadAuth.idToken) {
+    throw new Error("No ID token set; cannot load threads.");
+  }
+
+  const res = await fetch("/threads", {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + window.ToThreadAuth.idToken,
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const msg = data && data.message ? data.message : `HTTP ${res.status}`;
+    throw new Error(`Failed to load threads: ${msg}`);
+  }
+
+  window.ToThreadAuth.threads = data.threads || [];
+  return window.ToThreadAuth.threads;
+}
+
+async function fetchThreadContent(tag) {
+  if (!window.ToThreadAuth.idToken) {
+    throw new Error("No ID token set; cannot load thread.");
+  }
+
+  const res = await fetch(`/threads/${encodeURIComponent(tag)}`, {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + window.ToThreadAuth.idToken,
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const msg = data && data.message ? data.message : `HTTP ${res.status}`;
+    throw new Error(`Failed to load thread: ${msg}`);
+  }
+
+  return data;
+}
+
+async function saveThreadEntry(tag, content) {
+  if (!window.ToThreadAuth.idToken) {
+    throw new Error("No ID token set; cannot save entry.");
+  }
+
+  const res = await fetch(`/threads/${encodeURIComponent(tag)}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + window.ToThreadAuth.idToken,
+    },
+    body: JSON.stringify({ content }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    const msg = data && data.message ? data.message : `HTTP ${res.status}`;
+    throw new Error(`Failed to save entry: ${msg}`);
+  }
+
+  return data;
+}
+
+function renderThreadTags() {
+  const container = document.getElementById("thread-tags");
+  if (!container) return;
+
+  if (window.ToThreadAuth.threads.length === 0) {
+    container.innerHTML = '<span class="no-threads">No threads yet. Create one in your repo!</span>';
+    return;
+  }
+
+  container.innerHTML = "";
+  window.ToThreadAuth.threads.forEach((tag) => {
+    const chip = document.createElement("button");
+    chip.className = "thread-tag-chip";
+    chip.textContent = tag;
+    if (window.ToThreadAuth.selectedThread === tag) {
+      chip.classList.add("selected");
+    }
+    chip.addEventListener("click", () => selectThread(tag));
+    container.appendChild(chip);
+  });
+}
+
+async function selectThread(tag) {
+  window.ToThreadAuth.selectedThread = tag;
+  renderThreadTags();
+
+  const titleEl = document.getElementById("thread-title");
+  const contentEl = document.getElementById("thread-content");
+  const statusEl = document.getElementById("thread-status");
+  const viewerContainer = document.getElementById("thread-viewer-container");
+
+  if (titleEl) titleEl.textContent = `📔 ${tag}`;
+  if (viewerContainer) viewerContainer.style.display = "block";
+  if (statusEl) statusEl.textContent = "Loading...";
+
+  try {
+    const data = await fetchThreadContent(tag);
+    const lines = data.lines || [];
+    if (contentEl) {
+      contentEl.textContent = lines.join("\n") || "(Empty thread)";
+    }
+    if (statusEl) {
+      statusEl.textContent = `Showing last ${lines.length} lines (${data.totalLines || 0} total)`;
+    }
+  } catch (err) {
+    if (statusEl) statusEl.textContent = err.message || "Failed to load thread";
+  }
+}
+
+function wireThreadInteractions() {
+  const saveBtn = document.getElementById("save-thread-entry-btn");
+  const entryText = document.getElementById("thread-entry-text");
+  const statusEl = document.getElementById("thread-status");
+  const refreshBtn = document.getElementById("refresh-thread-btn");
+
+  if (saveBtn && entryText) {
+    saveBtn.addEventListener("click", async () => {
+      if (!window.ToThreadAuth.selectedThread) {
+        alert("Please select a thread first.");
+        return;
+      }
+
+      const content = entryText.value.trim();
+      if (!content) {
+        alert("Please enter some content.");
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = "Saving...";
+
+      try {
+        await saveThreadEntry(window.ToThreadAuth.selectedThread, content);
+        entryText.value = "";
+        if (statusEl) statusEl.textContent = "Entry saved!";
+        
+        // Refresh thread content
+        await selectThread(window.ToThreadAuth.selectedThread);
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err.message || "Failed to save entry";
+      }
+    });
+  }
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      if (window.ToThreadAuth.selectedThread) {
+        await selectThread(window.ToThreadAuth.selectedThread);
+      }
+    });
+  }
+}
+
 window.handleCredentialResponse = (response) => {
   const idToken = response && response.credential;
   if (!idToken) {
@@ -425,6 +590,13 @@ window.handleCredentialResponse = (response) => {
       renderTagFilters();
       renderTodoList();
       wireInteractions();
+
+      // Load threads
+      return fetchThreads();
+    })
+    .then((threads) => {
+      renderThreadTags();
+      wireThreadInteractions();
     })
     .catch((err) => {
       const statusEl = document.getElementById("status");
@@ -434,14 +606,7 @@ window.handleCredentialResponse = (response) => {
     });
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-  const statusEl = document.getElementById("status");
-  if (statusEl) {
-    statusEl.textContent =
-      "UI skeleton loaded. Sign-in is wired; todos will be connected in later steps.";
-  }
-
-  // Initialize Google Identity Services when available.
+function initializeGoogleIdentity() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.initialize({
       client_id: CLIENT_ID,
@@ -457,7 +622,41 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     google.accounts.id.prompt();
-  } else {
-    setAuthStatus("Google Identity Services not loaded yet.");
+    return true;
   }
+  return false;
+}
+
+function waitForGoogleIdentity() {
+  let attempts = 0;
+  const maxAttempts = 20;
+  const interval = 250;
+
+  const checkAndInit = () => {
+    attempts++;
+    
+    if (initializeGoogleIdentity()) {
+      return;
+    }
+
+    if (attempts >= maxAttempts) {
+      setAuthStatus("Failed to load Google Identity Services. Please refresh the page.");
+      return;
+    }
+
+    setAuthStatus(`Loading sign-in... (${attempts}/${maxAttempts})`);
+    setTimeout(checkAndInit, interval);
+  };
+
+  checkAndInit();
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  const statusEl = document.getElementById("status");
+  if (statusEl) {
+    statusEl.textContent =
+      "UI skeleton loaded. Sign-in is wired; todos will be connected in later steps.";
+  }
+
+  waitForGoogleIdentity();
 });
