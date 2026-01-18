@@ -314,3 +314,139 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 ---
 
 ## Phase 11 — Implement UI to allow raw writing using API implemented in 6.
+
+---
+
+## Phase 12 — Enhanced Project/Task Management System
+
+**Goal:** Transform the simple ToDo list into a comprehensive project management system with hierarchical tasks, dependencies, and the ability to nest projects within projects.
+
+**Vision:**
+- ToDo lists become projects with tasks
+- Tags can represent projects
+- Tasks can have dependencies on other tasks
+- Tasks can be expanded into subtasks
+- Tasks can be expanded into full projects with their own project files
+- Example: ToThread and MyCareThread would be tasks in a top-level project
+
+**Key Features:**
+- Hierarchical task structure (tasks → subtasks → sub-subtasks)
+- Task dependencies (task B cannot start until task A is complete)
+- Project nesting (a task can reference/contain an entire project)
+- Tag-based project organization
+- Status tracking beyond simple "done" (e.g., not started, in progress, blocked, completed)
+
+**Important:** Before implementation, we need to:
+1. Design the data structure to support hierarchical relationships and dependencies
+2. Evaluate technology choices (graph database vs nested JSON vs file-based)
+3. Consider how this integrates with existing KV storage or Git repo storage
+4. Define the UI/UX for managing complex project hierarchies
+
+### Steps:
+
+- [ ] **Step 12.1 — Design UI/UX for project management** *(2 hours)*
+  - Sketch/wireframe UI for:
+    - Project list view
+    - Project detail view with task hierarchy
+    - Task detail view with dependencies visualization
+    - Task creation/editing forms
+    - Dependency graph visualization
+  - Consider: tree view, Gantt chart, kanban board, or combination
+  - Decide on interaction patterns (drag-drop, context menus, etc.)
+  - **Goal:** Envision how the system works before making data structure and technical decisions
+
+- [ ] **Step 12.2 — Research and design data model** *(2-3 hours)*
+  - Research project management data models (DAG for dependencies, tree for hierarchy)
+  - Design schema for:
+    - Tasks with parent/child relationships
+    - Task dependencies (prerequisite tasks)
+    - Project references (task that points to another project file)
+    - Task metadata (status, priority, tags, dates, assignee)
+  - Consider: JSON structure vs graph database vs hybrid approach
+  - Document pros/cons of different storage approaches (KV, Git files, external DB)
+  - **Base decisions on UI/UX requirements from Step 12.1**
+
+- [ ] **Step 12.3 — Define storage strategy** *(1 hour)*
+  - Decide where to store project data:
+    - Option A: Enhanced JSON in KV (single key per project)
+    - Option B: Git repo files (one file per project, e.g., `Projects/<project-name>.json`)
+    - Option C: Hybrid (index in KV, details in Git)
+  - Consider scalability, query patterns, and consistency requirements
+  - Document decision and rationale
+
+- [ ] **Step 12.4 — Design API endpoints** *(1 hour)*
+  - Define REST API for project operations:
+    - `GET /projects` - list all projects
+    - `GET /projects/:id` - get project with full task tree
+    - `POST /projects` - create new project
+    - `PUT /projects/:id` - update project
+    - `POST /projects/:id/tasks` - add task to project
+    - `PUT /tasks/:id` - update task (status, dependencies, etc.)
+    - `DELETE /tasks/:id` - delete task
+    - `POST /tasks/:id/expand` - expand task into subtasks or project
+  - Define request/response schemas
+  - Consider dependency validation (prevent circular dependencies)
+
+- [ ] **Step 12.5 — Implement dependency graph logic** *(2-3 hours)*
+  - Implement functions to:
+    - Add/remove task dependencies
+    - Validate dependency graph (detect cycles)
+    - Calculate task ordering (topological sort)
+    - Determine which tasks are blocked vs ready
+  - Write unit tests for dependency logic
+
+- [ ] **Step 12.6 — Implement hierarchical task operations** *(2 hours)*
+  - Implement functions to:
+    - Create parent-child task relationships
+    - Expand task into subtasks
+    - Expand task into a full project (create project file, link from task)
+    - Collapse/expand views
+    - Calculate rollup status (parent task status based on children)
+
+- [ ] **Step 12.7 — Implement backend API endpoints** *(3-4 hours)*
+  - Build all endpoints defined in Step 12.4
+  - Add authentication and authorization (reuse existing allowlist)
+  - Implement validation (schema validation, dependency cycle detection)
+  - Add error handling and appropriate HTTP status codes
+
+- [ ] **Step 12.8 — Implement project list and tree view UI** *(3-4 hours)*
+  - Build project list view
+  - Build hierarchical task tree view with expand/collapse
+  - Show task status, dependencies, and metadata
+  - Add filtering and sorting options
+  - Make it responsive and accessible
+
+- [ ] **Step 12.9 — Implement task editing and dependency UI** *(3-4 hours)*
+  - Build task creation/editing forms
+  - Implement dependency selection UI (dropdown, autocomplete, or graph)
+  - Add ability to expand task into subtasks
+  - Add ability to expand task into project
+  - Show dependency status (blocked, ready, completed)
+
+- [ ] **Step 12.10 — Implement dependency visualization** *(2-3 hours)*
+  - Add visual representation of task dependencies
+  - Consider: simple list, tree diagram, or interactive graph
+  - Show critical path or blocked tasks
+  - Make it interactive (click to navigate)
+
+- [ ] **Step 12.11 — Migration strategy for existing todos** *(1-2 hours)*
+  - Design migration path from simple todo list to project structure
+  - Implement migration script/endpoint
+  - Test with existing todo data
+  - Document migration process
+
+- [ ] **Step 12.12 — Test end-to-end project management flow** *(2 hours)*
+  - Create a top-level project with ToThread and MyCareThread as tasks
+  - Add dependencies between tasks
+  - Expand a task into subtasks
+  - Expand a task into a full project
+  - Test status rollup and dependency blocking
+  - Verify data persistence and reload
+
+**Exit criteria:**
+- Can create hierarchical projects with nested tasks
+- Can define dependencies between tasks and system prevents circular dependencies
+- Can expand tasks into subtasks or full projects
+- UI clearly shows task hierarchy, dependencies, and status
+- Existing todo data can be migrated to new structure
+- ToThread and MyCareThread exist as tasks in a top-level project
