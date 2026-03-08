@@ -1,0 +1,9 @@
+# Xcode user-specific UI state
+**/xcuserdata/
+**/*.xcuserstate
+
+# Xcode workspace user data
+**/*.xcworkspace/xcuserdata/
+
+# Transient macOS files
+**/.DS_Store

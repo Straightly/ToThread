@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# Local build output created during CLI Xcode checks
+.xcode-derived/

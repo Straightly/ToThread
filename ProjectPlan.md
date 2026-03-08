@@ -450,3 +450,85 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 - UI clearly shows task hierarchy, dependencies, and status
 - Existing todo data can be migrated to new structure
 - ToThread and MyCareThread exist as tasks in a top-level project
+
+---
+
+## Phase 13 — iPhone Safari LLM Conversation Capture (No LLM APIs)
+
+**Goal:** Add an iPhone Safari-based conversation capture flow that lets you chat on public web UIs (ChatGPT/Gemini in Safari), capture prompts and responses verbatim, aggregate the full conversation, and save it into `rawWriting` through the existing backend writing pipeline.
+
+**Chosen direction (locked):**
+- Build an **iPhone Safari Web Extension + local session recorder**.
+- **Do not use paid/provider LLM APIs** for message generation or transcript retrieval.
+- Target **Safari web chats** (not native iOS chat apps) for v1.
+
+**Scope note:** This phase is planning-only right now; no implementation work starts until this plan is approved.
+
+### Steps:
+
+- [X] **Step 13.1 — Define supported conversation-launch model**
+  - **Decision:** v1 uses Safari Web Extension content scripts to capture conversations from ChatGPT/Gemini web pages.
+  - **Decision:** No official LLM APIs are used.
+  - **Decision:** Native iOS app chats are out-of-scope for automatic capture in v1.
+
+- [X] **Step 13.2 — Create Xcode project structure for iPhone app + Safari extension**
+  - Create/confirm iOS app container project.
+  - Add Safari Web Extension target and required bundle identifiers.
+  - Ensure project builds successfully in Xcode.
+  - **Verification gate:** clean build passes with no runtime launch yet.
+
+- [X] **Step 13.3 — Create minimal extension shell**
+  - Add minimal extension files (manifest, background/popup scaffold, content script scaffold).
+  - Show a visible extension popup/title so activation can be confirmed.
+  - **Verification gate:** extension target compiles and archive/install artifacts are generated.
+
+- [ ] **Step 13.4 — Install app/extension on iPhone**
+  - Install to your iPhone from Xcode (developer flow).
+  - Confirm app appears on device.
+  - **Verification gate:** app launches on iPhone without crashing.
+
+- [ ] **Step 13.5 — Enable extension in Safari and verify activation**
+  - iPhone path: `Settings > Safari > Extensions` and enable the extension.
+  - Enable permission for target sites (start with ChatGPT/OpenAI web domain).
+  - **Verification gate:** extension icon is available in Safari and popup opens.
+
+- [ ] **Step 13.6 — Validate OpenAI web chat page detection**
+  - Open OpenAI chat in Safari.
+  - Confirm content script loads on allowed pages.
+  - Add simple page-status indicator (`supported page detected`).
+  - **Verification gate:** extension reports active on OpenAI chat page.
+
+- [ ] **Step 13.7 — Implement minimal prompt/response capture**
+  - Capture one user prompt and one assistant response from the page DOM.
+  - Store captured turns in local session memory (no backend save yet).
+  - **Verification gate:** captured turns are visible in extension debug view.
+
+- [ ] **Step 13.8 — Implement session start/stop and multi-turn recording**
+  - Add `Start Session` and `Stop Session` controls.
+  - Record ordered turns with timestamps while session is active.
+  - **Verification gate:** multiple turns are captured in correct order during one session.
+
+- [ ] **Step 13.9 — Define transcript schema and local draft persistence**
+  - Canonical structure: `conversationId`, `provider`, `model`, `startedAt`, `endedAt`, `messages[]`.
+  - Persist draft session locally to avoid data loss on tab/app interruptions.
+  - **Verification gate:** reload Safari/app and confirm draft can be recovered.
+
+- [ ] **Step 13.10 — Define backend contract for saving transcript to rawWriting**
+  - Reuse `POST /writings` or add dedicated conversation endpoint.
+  - Define markdown rendering format preserving verbatim turns.
+  - **Verification gate:** agreed request/response schema documented in plan/spec.
+
+- [ ] **Step 13.11 — Add Google-authenticated save flow**
+  - Keep current Google login/allowlist model.
+  - Trigger login at first save attempt if no valid session.
+  - **Verification gate:** authenticated test user can call save endpoint successfully.
+
+- [ ] **Step 13.12 — End-to-end save to repo and verify output**
+  - Finalize captured session and submit to backend.
+  - Verify file appears in raw writing folder with complete ordered transcript.
+  - **Verification gate:** one full OpenAI conversation is captured and saved end-to-end.
+
+**Exit criteria:**
+- On iPhone Safari, a user can start a session on ChatGPT/Gemini web chat, capture full prompts/responses verbatim, finalize the transcript, and save it as a raw writing entry via the existing backend flow.
+- Flow works without LLM provider APIs, and Google-authenticated save writes to the same storage location used by current raw writing entries.
+- Saved file is complete, ordered, and readable.
