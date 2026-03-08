@@ -113,3 +113,15 @@ fatal: Authentication failed for 'https://github.com/Straightly/ToThread.git/'"
 ## Entry 28
 - Prompt: "It worked."
 - Result summary: Confirmed Step 5 passed (Safari extension enabled and popup activation verified on iPhone), and marked Phase 13 Step 13.5 complete in the project plan.
+
+## Entry 29
+- Prompt: "I am done today for this project and will resume tomorrow.  I got an issue with my Safari browser that it is showing a bunch of garbage characters on top \"No NH C cut n g ...\"  what are these and how to get rid of it?"
+- Result summary: Provided likely causes and cleanup steps for Safari text overlay artifacts (accessibility overlays, Reader mode, extension/UI injection, cached page state), including how to disable extensions temporarily and isolate which extension is causing it.
+
+## Entry 30
+- Prompt: "It is still there.  It even shows when I try to open a new tab and before I select any url for the new tab."
+- Result summary: Narrowed diagnosis to a Safari/system overlay issue (not site content) and provided a focused isolation sequence for iOS extensions, accessibility overlays, Safari advanced settings, and device restart/reset steps.
+
+## Entry 31
+- Prompt: "It seemed to be related to add a tab.  When I tried to open a new tab, the screen show top half and bottom half.  The top half are this garbarg text and an icon with a plus sign in it and bottom show Favirites with a bunch of websites with icon.  click on the plus open a selection list of the favorites.  If I select one, it will be add to the top half.  Do not see how to get rid of it afterward."
+- Result summary: Identified the UI as Safari Tab Group/Pinned Tabs behavior (not random injected text), and provided steps to unpin/remove top-half items, exit/reset tab group view, and restore normal new-tab behavior.
