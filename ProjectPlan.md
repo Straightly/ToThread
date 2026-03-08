@@ -482,12 +482,12 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Show a visible extension popup/title so activation can be confirmed.
   - **Verification gate:** extension target compiles and archive/install artifacts are generated.
 
-- [ ] **Step 13.4 — Install app/extension on iPhone**
+- [X] **Step 13.4 — Install app/extension on iPhone**
   - Install to your iPhone from Xcode (developer flow).
   - Confirm app appears on device.
   - **Verification gate:** app launches on iPhone without crashing.
 
-- [ ] **Step 13.5 — Enable extension in Safari and verify activation**
+- [X] **Step 13.5 — Enable extension in Safari and verify activation**
   - iPhone path: `Settings > Safari > Extensions` and enable the extension.
   - Enable permission for target sites (start with ChatGPT/OpenAI web domain).
   - **Verification gate:** extension icon is available in Safari and popup opens.

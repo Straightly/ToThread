@@ -85,3 +85,31 @@ fatal: Authentication failed for 'https://github.com/Straightly/ToThread.git/'"
 ## Entry 21
 - Prompt: "git remote set-url origin git@github.com:Straightly/ToThread.git"
 - Result summary: Switched `origin` to SSH (`git@github.com:Straightly/ToThread.git`) and verified fetch/push remotes now use SSH.
+
+## Entry 22
+- Prompt: "Now my code has been checked in and I am ready to move on to the next step."
+- Result summary: Proceeded to Step 4 and provided a concrete iPhone install-and-launch verification checklist (device trust, signing, run from Xcode, and app launch confirmation) to pass the next gated milestone before marking it complete.
+
+## Entry 23
+- Prompt: "How to \"select scheme. ToThreadCapture (iOS)?"
+- Result summary: Provided exact Xcode UI steps to select the `ToThreadCapture (iOS)` scheme from the top toolbar scheme dropdown and pair it with an iPhone run destination.
+
+## Entry 24
+- Prompt: "See no drop down for scheme, but did see a destination drop down.  It says my iphone  is not available as pair in iprogress.  Clicking it show a windows say xCode pairing already started and I need follow instruction on my iPhone ...  Not seeing any instruction on my iPhone, though."
+- Result summary: Provided a targeted troubleshooting flow for Xcode iPhone pairing stuck in progress (trust prompts, developer mode, device reconnect/restart, pairing reset via Devices and Simulators), and how to proceed once the device appears as available.
+
+## Entry 25
+- Prompt: "I unplugged and plugged in again.  It then installed shared symbols (took a long time), but now I managed to select my iPhone."
+- Result summary: Confirmed pairing progress and guided next Step 4 actions: run the app to device, trust developer profile if prompted, and verify app launches to pass the install/launch gate.
+
+## Entry 26
+- Prompt: "It launches and says I can turn on TOHTreadCapture's Safari extension in Settings."
+- Result summary: Confirmed Step 4 verification passed (app installed and launched on iPhone), then marked Phase 13 Step 13.4 complete in the project plan.
+
+## Entry 27
+- Prompt: "Go on..."
+- Result summary: Proceeded to Step 5 by providing exact instructions to enable the Safari extension on iPhone, grant site permissions, verify popup activation, and request confirmation before marking the step complete.
+
+## Entry 28
+- Prompt: "It worked."
+- Result summary: Confirmed Step 5 passed (Safari extension enabled and popup activation verified on iPhone), and marked Phase 13 Step 13.5 complete in the project plan.
