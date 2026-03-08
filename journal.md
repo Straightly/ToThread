@@ -67,3 +67,21 @@
 ## Entry 17
 - Prompt: "I was looking my git status and noticed a lot of files are added and very sure some of them should be ignored.  Can you add an .gitignore to the new folder or folders?"
 - Result summary: Added `.gitignore` files at repo root and `ios/` to ignore generated/local artifacts (e.g., `.xcode-derived`, `.DS_Store`, and Xcode user data such as `xcuserdata` and `.xcuserstate`) while keeping source files trackable.
+
+## Entry 18
+- Prompt: "zhian@Zhis-Mac-mini ToThread % git push
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/Straightly/ToThread.git/'"
+- Result summary: Diagnosed that the repository is using HTTPS auth and push failed due to invalid credentials/token; provided exact recovery options using either GitHub CLI login + credential helper or switching remote to SSH with key-based authentication.
+
+## Entry 19
+- Prompt: "My ssh key should already be in the github account."
+- Result summary: Clarified that push is still using HTTPS remote, so SSH key is not being used; provided commands to switch `origin` to SSH and verify/authenticate before pushing.
+
+## Entry 20
+- Prompt: "git remote set-url origin git@github.com:Straightly/ToThread.git"
+- Result summary: Verified the repository remote should now use SSH, which enables GitHub key-based auth for push operations instead of failing HTTPS token auth.
+
+## Entry 21
+- Prompt: "git remote set-url origin git@github.com:Straightly/ToThread.git"
+- Result summary: Switched `origin` to SSH (`git@github.com:Straightly/ToThread.git`) and verified fetch/push remotes now use SSH.
