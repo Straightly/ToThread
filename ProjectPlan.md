@@ -571,8 +571,12 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 - [X] **Step 14.2 — Add backend endpoints for plan file**
   - `GET /plan` returns file content (raw markdown).
-  - `PUT /plan` saves full content (with basic validation and size limits).
+  - Replace `PUT /plan` with task‑level CRUD endpoints:
+    - `POST /plan/tasks` (create task)
+    - `PATCH /plan/tasks/:id` (update task fields/status)
+    - `DELETE /plan/tasks/:id` (remove task)
   - Authenticated + allowlisted (reuse existing Google auth).
+  - Storage still writes full plan file after each CRUD change.
 
 - [ ] **Step 14.3 — Implement Gitea read/write helpers**
   - Add functions to fetch file content and update file in repo.

@@ -5,6 +5,7 @@ import { getTodos, saveTodos } from './todos.js';
 import { listThreads, getThreadContent, appendThreadEntry } from './threads.js';
 import { giteaRequest, buildGiteaContentsUrl, ensureTrailingSlash, generateWritingFileName, generateWritingMarkdown, base64EncodeUtf8 } from './gitea.js';
 import { jsonResponse } from './utils.js';
+import { loadPlan, savePlan, addTask, replaceTask, deleteTask, getTask } from './plan.js';
 
 export async function handleHealth() {
   return jsonResponse({ status: "ok", service: "ToThread-webApp" }, 200);
@@ -146,6 +147,139 @@ export async function handlePostWriting(request, env) {
       { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
       isAuthError(msg) ? 401 : 500
     );
+  }
+}
+
+async function requireAllowedUser(request, env) {
+  const token = parseAuthorizationHeader(request);
+  const { email } = await verifyGoogleIdToken(token, env);
+  const allowed = await isAllowed(env, email);
+  if (!allowed) {
+    return { error: jsonResponse({ error: "forbidden", message: "User is not in allowlist" }, 403) };
+  }
+  return { email };
+}
+
+export async function handleGetPlan(request, env) {
+  try {
+    const auth = await requireAllowedUser(request, env);
+    if (auth.error) return auth.error;
+
+    const plan = await loadPlan(env);
+    if (!plan.exists) {
+      return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
+    }
+    return new Response(plan.raw, {
+      status: 200,
+      headers: { "content-type": "text/yaml; charset=utf-8" },
+    });
+  } catch (err) {
+    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+  }
+}
+
+export async function handleCreatePlanTask(request, env) {
+  try {
+    const auth = await requireAllowedUser(request, env);
+    if (auth.error) return auth.error;
+
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return jsonResponse({ error: "bad_request", message: "Body must be JSON" }, 400);
+    }
+
+    const { parentId = null, task, position = null } = body;
+    if (!task || typeof task.title !== "string") {
+      return jsonResponse({ error: "bad_request", message: "Missing task.title" }, 400);
+    }
+
+    const plan = await loadPlan(env);
+    if (!plan.exists) {
+      return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
+    }
+
+    const result = addTask(plan.plan, parentId, task, position);
+    if (result.error) {
+      return jsonResponse({ error: "bad_request", message: result.error }, 400);
+    }
+
+    const commit = await savePlan(env, plan.plan, `Add plan task ${result.task.id}`);
+    return jsonResponse({ status: "ok", task: result.task, commit }, 200);
+  } catch (err) {
+    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+  }
+}
+
+export async function handleUpdatePlanTask(request, env, taskId) {
+  try {
+    const auth = await requireAllowedUser(request, env);
+    if (auth.error) return auth.error;
+
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return jsonResponse({ error: "bad_request", message: "Body must be JSON" }, 400);
+    }
+    if (!body.task || typeof body.task !== "object") {
+      return jsonResponse({ error: "bad_request", message: "Body must include task object" }, 400);
+    }
+
+    const plan = await loadPlan(env);
+    if (!plan.exists) {
+      return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
+    }
+
+    const result = replaceTask(plan.plan, taskId, body.task);
+    if (result.error) {
+      return jsonResponse({ error: "not_found", message: result.error }, 404);
+    }
+
+    const commit = await savePlan(env, plan.plan, `Update plan task ${taskId}`);
+    return jsonResponse({ status: "ok", task: result.task, commit }, 200);
+  } catch (err) {
+    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+  }
+}
+
+export async function handleDeletePlanTask(request, env, taskId) {
+  try {
+    const auth = await requireAllowedUser(request, env);
+    if (auth.error) return auth.error;
+
+    const plan = await loadPlan(env);
+    if (!plan.exists) {
+      return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
+    }
+
+    const result = deleteTask(plan.plan, taskId);
+    if (result.error) {
+      return jsonResponse({ error: "not_found", message: result.error }, 404);
+    }
+
+    const commit = await savePlan(env, plan.plan, `Delete plan task ${taskId}`);
+    return jsonResponse({ status: "ok", task: result.task, commit }, 200);
+  } catch (err) {
+    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+  }
+}
+
+export async function handleGetPlanTask(request, env, taskId) {
+  try {
+    const auth = await requireAllowedUser(request, env);
+    if (auth.error) return auth.error;
+
+    const plan = await loadPlan(env);
+    if (!plan.exists) {
+      return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
+    }
+
+    const result = getTask(plan.plan, taskId);
+    if (result.error) {
+      return jsonResponse({ error: "not_found", message: result.error }, 404);
+    }
+
+    return jsonResponse({ status: "ok", task: result.task }, 200);
+  } catch (err) {
+    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
   }
 }
 

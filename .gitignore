@@ -3,3 +3,7 @@
 
 # Local build output created during CLI Xcode checks
 .xcode-derived/
+
+# Node dependencies
+node_modules/
+**/node_modules/

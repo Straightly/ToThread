@@ -43,6 +43,32 @@ export default {
       return routes.handlePutTodos(request, env);
     }
 
+    if (request.method === "GET" && url.pathname === "/plan") {
+      return routes.handleGetPlan(request, env);
+    }
+
+    if (request.method === "POST" && url.pathname === "/plan/tasks") {
+      return routes.handleCreatePlanTask(request, env);
+    }
+
+    if (request.method === "PUT" && url.pathname.startsWith("/plan/tasks/")) {
+      const taskId = url.pathname.replace("/plan/tasks/", "");
+      if (!taskId) return new Response("Bad Request", { status: 400 });
+      return routes.handleUpdatePlanTask(request, env, taskId);
+    }
+
+    if (request.method === "GET" && url.pathname.startsWith("/plan/tasks/")) {
+      const taskId = url.pathname.replace("/plan/tasks/", "");
+      if (!taskId) return new Response("Bad Request", { status: 400 });
+      return routes.handleGetPlanTask(request, env, taskId);
+    }
+
+    if (request.method === "DELETE" && url.pathname.startsWith("/plan/tasks/")) {
+      const taskId = url.pathname.replace("/plan/tasks/", "");
+      if (!taskId) return new Response("Bad Request", { status: 400 });
+      return routes.handleDeletePlanTask(request, env, taskId);
+    }
+
     if (request.method === "GET" && url.pathname === "/threads") {
       return routes.handleGetThreads(request, env);
     }

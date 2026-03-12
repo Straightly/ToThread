@@ -426,3 +426,116 @@ Result: Step 14.3 is the next pending step.
 Prompt: "OK.  Do 14.3.  Please tell me how to deploy when you finished coding it."
 Action: Implemented Gitea read/write helpers for plan files in backend.
 Result: Added getRepoFile and createOrUpdateRepoFile (with base64 decode) to gitea.js; provided deploy instructions.
+
+## Entry 87
+Prompt: "What should I use to the env name?"
+Action: Explained how to choose Cloudflare Wrangler env name and how to list or omit it.
+Result: Provided guidance to use no env if only default exists, or match wrangler.toml env section name.
+
+## Entry 88
+Prompt: "please."
+Action: Checked wrangler.toml for env sections.
+Result: No `[env.*]` sections; deploy without `--env`.
+
+## Entry 89
+Prompt: "zsh: command not found: wragler"
+Action: Diagnosed typo and missing CLI; provided install/use instructions for Wrangler.
+Result: Suggested `wrangler` spelling and install via npm or `npx wrangler`.
+
+## Entry 90
+Prompt: "Deployed.  Is there anyway I can test the end points before I can move on?  Or we cand wait to add the client and use that that end to end test."
+Action: Clarified endpoints are not implemented yet; suggested adding server endpoints and testing with curl once available.
+Result: Advised to implement /plan endpoints before testing; offered to proceed.
+
+## Entry 91
+Prompt: "So you did step 3 first instead of step 2?"
+Action: Acknowledged step order mismatch and explained that Step 14.2 endpoints are not yet implemented; Step 14.3 helpers are done.
+Result: Clarified status and offered to implement Step 14.2 now.
+
+## Entry 92
+Prompt: "I need the read end point.  I do not want a put plan end point as I want to manage the plan on the server so I can enforce my workflow rules.  instead, I will like to have CRUD operations on tasks in the plan rather than put the whole plan.  Please update the plan accordingly.  At the storage level, of course, put is still needed as the updated plan will be written as one file."
+Action: Updated Step 14.2 to keep GET /plan and replace PUT with task‑level CRUD endpoints; noted full‑file write remains storage detail.
+Result: ProjectPlan.md reflects CRUD endpoints for tasks.
+
+## Entry 93
+Prompt: "I believe PUT is the stanard REST instead of PATCH, right?"
+Action: Clarified REST semantics: PUT for full replacement, PATCH for partial update; either acceptable depending on API design.
+Result: Explained when to use PUT vs PATCH for task updates.
+
+## Entry 94
+Prompt: "for resource /plan/tassk/:id operation, PUT is the whole object.  Isn't that so?"
+Action: Confirmed PUT semantics on /plan/tasks/:id imply full replacement of the task.
+Result: Agreed PUT should represent full task object; PATCH for partial updates.
+
+## Entry 95
+Prompt: "That is an intereating situations.  My task can have substasks.  At he parent level, I want to put the task as a whole including ordered list of sub-task ids.  But nothing about the details in the subtasks, which need to be modified by operating on the subtasks themselves.  So I guess I should stick with PUT."
+Action: Agreed with PUT semantics for parent task including ordered subtask IDs; subtasks updated via their own endpoints.
+Result: Confirmed PUT is appropriate for full parent task replacement with child ID order.
+
+## Entry 96
+Prompt: "OK.  Do 14.3.  Please tell me how to deploy when you finished coding it."
+Action: Implemented plan CRUD endpoints and added YAML parsing support for ProjectPlan.yaml.
+Result: Added plan endpoints in index.js/routes.js, plan helpers in lib/plan.js, and package.json with yaml dependency; provided deploy steps.
+
+## Entry 97
+Prompt: "I did myself.  Deploy is successful.  Let's test"
+Action: Provided curl test commands for /plan and task CRUD endpoints.
+Result: Test instructions delivered.
+
+## Entry 98
+Prompt: "The token is '...'.  Please give me the complete testing commands."
+Action: Refused to handle exposed token, advised to rotate, and provided test commands with placeholder token.
+Result: Supplied safe curl commands using <GOOGLE_ID_TOKEN> placeholder.
+
+## Entry 99
+Prompt: "I will set it in an env variable.  $GOOGLE_TOKEN.  Give me the command to do that."
+Action: Provided shell commands to export GOOGLE_TOKEN in the current session (and optional one‑liner for a single command).
+Result: User can now set GOOGLE_TOKEN securely for curl tests.
+
+## Entry 100
+Prompt: "curl get is successful.  What are the commands to test the other end points?"
+Action: Provided curl commands for POST/PUT/DELETE plan task endpoints using GOOGLE_TOKEN env var.
+Result: Test commands delivered.
+
+## Entry 101
+Prompt: "Post returned successfully and new task id is test-task-1773282236401.  Please give the the command for GET, PUT, and DELETE.  Did we create one for GET?"
+Action: Clarified no GET /plan/tasks/:id exists; provided PUT and DELETE commands using the task id and reminded GET /plan is available.
+Result: User has correct curl commands and endpoint status.
+
+## Entry 102
+Prompt: "Please create the GET API for a task too."
+Action: Added GET /plan/tasks/:id endpoint and supporting helper.
+Result: Implemented getTask in plan.js, handleGetPlanTask in routes.js, and route wiring in index.js.
+
+## Entry 103
+Prompt: "zhian@Zhis-Mac-mini backend % curl -sS -H \"Authorization: Bearer $GOOGLE_TOKEN\" \
+  https://tothread-webapp.zhian-job.workers.dev/plan/tasks/test-task-1773282907853
+
+{\"error\":\"not_found\",\"message\":\"Task not found\"}%. I have verified that the task with the given id does exist in the proejct plan."
+Action: Fixed YAML parser to allow multi-line array item objects so task IDs are parsed; requires redeploy.
+Result: GET /plan/tasks/:id should work after deploy.
+
+## Entry 104
+Prompt: "I notice that the post put and delete return all the plan.  That is not intened.  They should return only tha task.  Can you fix?"
+Action: Slimmed plan save response to return only minimal commit metadata and task objects.
+Result: POST/PUT now return only task + minimal commit; DELETE returns minimal commit.
+
+## Entry 105
+Prompt: "How about delete? It should also only return the delete task."
+Action: Updated deleteTask to return the removed task and adjusted DELETE response to include it.
+Result: DELETE /plan/tasks/:id now returns deleted task + minimal commit.
+
+## Entry 106
+Prompt: "Can you create a test script for testing all the end points?  If the test run into authentication error, ask the user to set the GOOGLE_TOKEN with the details instruction you gave me earlier.  Then Test the get plan end point.  Then test the POST to get the return ID, then test PUT with update, and then test Read to verify the change.  Then test delete.  Then test read again to verify the task is gone."
+Action: Added a bash test script to run GET/POST/PUT/GET/DELETE/GET for plan task endpoints with GOOGLE_TOKEN check.
+Result: Script created at webApp/backend/scripts/test-plan-endpoints.sh.
+
+## Entry 107
+Prompt: "Please add the instructions to README file in the project."
+Action: Added Plan API test instructions to README.md.
+Result: README now documents how to run the plan endpoint test script.
+
+## Entry 108
+Prompt: "fix my .gitignore so node_modules are not checked in.  Also, please fix whatever install specs are so when one run npm install, the node_modules will be properly installed."
+Action: Updated .gitignore to exclude node_modules; confirmed backend has package.json for npm install.
+Result: node_modules will be ignored and npm install will work in webApp/backend.
