@@ -578,7 +578,7 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Authenticated + allowlisted (reuse existing Google auth).
   - Storage still writes full plan file after each CRUD change.
 
-- [ ] **Step 14.3 — Implement Gitea read/write helpers**
+- [X] **Step 14.3 — Implement Gitea read/write helpers**
   - Add functions to fetch file content and update file in repo.
   - Reuse existing Gitea API client and branch config.
 

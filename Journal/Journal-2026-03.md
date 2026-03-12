@@ -539,3 +539,8 @@ Result: README now documents how to run the plan endpoint test script.
 Prompt: "fix my .gitignore so node_modules are not checked in.  Also, please fix whatever install specs are so when one run npm install, the node_modules will be properly installed."
 Action: Updated .gitignore to exclude node_modules; confirmed backend has package.json for npm install.
 Result: node_modules will be ignored and npm install will work in webApp/backend.
+
+## Entry 109
+Prompt: "now steps are all done for movoing to step 4.  Please update project plan."
+Action: Marked Phase 14 Step 14.3 complete.
+Result: ProjectPlan.md updated; Step 14.4 is next.
