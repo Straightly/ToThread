@@ -492,43 +492,112 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Enable permission for target sites (start with ChatGPT/OpenAI web domain).
   - **Verification gate:** extension icon is available in Safari and popup opens.
 
-- [ ] **Step 13.6 — Validate OpenAI web chat page detection**
+- [X] **Step 13.6 — Validate OpenAI web chat page detection**
   - Open OpenAI chat in Safari.
   - Confirm content script loads on allowed pages.
   - Add simple page-status indicator (`supported page detected`).
   - **Verification gate:** extension reports active on OpenAI chat page.
 
-- [ ] **Step 13.7 — Implement minimal prompt/response capture**
+- [X] **Step 13.7 — Implement minimal prompt/response capture**
   - Capture one user prompt and one assistant response from the page DOM.
   - Store captured turns in local session memory (no backend save yet).
   - **Verification gate:** captured turns are visible in extension debug view.
 
-- [ ] **Step 13.8 — Implement session start/stop and multi-turn recording**
+- [X] **Step 13.8 — Implement session start/stop and multi-turn recording**
   - Add `Start Session` and `Stop Session` controls.
   - Record ordered turns with timestamps while session is active.
   - **Verification gate:** multiple turns are captured in correct order during one session.
 
-- [ ] **Step 13.9 — Define transcript schema and local draft persistence**
+- [X] **Step 13.9 — Define transcript schema and local draft persistence**
   - Canonical structure: `conversationId`, `provider`, `model`, `startedAt`, `endedAt`, `messages[]`.
   - Persist draft session locally to avoid data loss on tab/app interruptions.
   - **Verification gate:** reload Safari/app and confirm draft can be recovered.
 
-- [ ] **Step 13.10 — Define backend contract for saving transcript to rawWriting**
+- [X] **Step 13.10 — Define backend contract for saving transcript to rawWriting**
   - Reuse `POST /writings` or add dedicated conversation endpoint.
   - Define markdown rendering format preserving verbatim turns.
   - **Verification gate:** agreed request/response schema documented in plan/spec.
 
-- [ ] **Step 13.11 — Add Google-authenticated save flow**
+- [X] **Step 13.11 — Add Google-authenticated save flow**
   - Keep current Google login/allowlist model.
   - Trigger login at first save attempt if no valid session.
   - **Verification gate:** authenticated test user can call save endpoint successfully.
 
-- [ ] **Step 13.12 — End-to-end save to repo and verify output**
+- [X] **Step 13.12 — End-to-end save to repo and verify output**
   - Finalize captured session and submit to backend.
   - Verify file appears in raw writing folder with complete ordered transcript.
   - **Verification gate:** one full OpenAI conversation is captured and saved end-to-end.
+
+- [X] **Step 13.13 — Hide debug controls behind a debug toggle**
+  - Add a `Debug Mode` toggle in the extension popup.
+  - Hide debug buttons/output by default for normal daily use.
+  - Keep advanced diagnostics available when `Debug Mode` is enabled.
+  - **Verification gate:** default popup shows only core workflow controls; debug panel appears only after toggle-on.
+
+- [X] **Step 13.14 — Simplify popup and auto-save on stop**
+  - Move backend URL/token/settings controls into Debug Mode panel.
+  - Keep default view focused on start/stop/finalize workflow.
+  - Make `Stop Session` attempt automatic save immediately.
+  - If login is required, open login page and queue pending save for automatic completion after token import.
+  - **Verification gate:** stopping a session saves automatically when token is valid; if token missing/expired, save completes after login + token import.
+
+- [X] **Step 13.15 — Clear local transcript after successful save**
+  - Clear local capture session storage immediately after backend save success.
+  - Prevent previous conversations from being included in later saves.
+  - **Verification gate:** after save, next draft starts empty unless a new session is recorded.
 
 **Exit criteria:**
 - On iPhone Safari, a user can start a session on ChatGPT/Gemini web chat, capture full prompts/responses verbatim, finalize the transcript, and save it as a raw writing entry via the existing backend flow.
 - Flow works without LLM provider APIs, and Google-authenticated save writes to the same storage location used by current raw writing entries.
 - Saved file is complete, ordered, and readable.
+
+---
+
+## Phase 14 — iPhone ProjectPlan Manager
+
+**Goal:** Display and manage `ProjectPlan.md` (root of the repo) from the iPhone, with read/edit/save and clear status updates.
+
+### Steps:
+
+- [X] **Step 14.0 — Define architecture components**
+  - Identify required components (backend endpoints, iPhone UI surface, Gitea helpers, auth flow).
+  - Decide where the plan viewer/editor lives (native iOS app screen).
+  - Document data flow: load → edit → save → commit.
+
+- [ ] **Step 14.1 — Define plan file contract**
+  - File path: `ProjectPlan.md` at repo root.
+  - Define read/write format expectations (Markdown passthrough).
+  - Decide whether to allow edits anywhere or constrain to specific sections.
+
+- [X] **Step 14.2 — Add backend endpoints for plan file**
+  - `GET /plan` returns file content (raw markdown).
+  - `PUT /plan` saves full content (with basic validation and size limits).
+  - Authenticated + allowlisted (reuse existing Google auth).
+
+- [ ] **Step 14.3 — Implement Gitea read/write helpers**
+  - Add functions to fetch file content and update file in repo.
+  - Reuse existing Gitea API client and branch config.
+
+- [ ] **Step 14.4 — iPhone UI for plan viewing/editing**
+  - Add a native “Project Plan” screen inside the iOS app (not Safari).
+  - Render markdown as plain text editor (v1).
+  - Provide `Load`, `Edit`, `Save` actions with clear success/error messages.
+
+- [ ] **Step 14.4b — Native Google sign‑in in app**
+  - Add Google sign‑in in the iOS app (no web page).
+  - Store ID token securely for backend calls.
+  - Reuse allowlist enforcement on backend.
+
+- [ ] **Step 14.5 — Conflict/overwrite strategy**
+  - Decide on overwrite policy (last‑write‑wins).
+  - Optional: include a `sha`/ETag to prevent accidental overwrite.
+
+- [ ] **Step 14.6 — End‑to‑end test**
+  - Load plan on iPhone.
+  - Edit a section and save.
+  - Verify changes in repo and Git history.
+
+**Exit criteria:**
+- `ProjectPlan.md` can be loaded, edited, and saved from iPhone.
+- Changes are committed to the repo with a clear commit message.
+- Auth and allowlist enforcement remain intact.

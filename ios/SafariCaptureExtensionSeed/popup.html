@@ -7,14 +7,46 @@
     <style>
       body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 12px; min-width: 240px; }
       h1 { font-size: 14px; margin: 0 0 8px 0; }
+      #message { font-size: 12px; margin-top: 8px; white-space: pre-wrap; }
       #status { font-size: 12px; white-space: pre-wrap; }
+      label { display: block; margin-top: 8px; font-size: 12px; }
+      input, textarea { width: 100%; box-sizing: border-box; font-size: 12px; margin-top: 4px; }
+      textarea { min-height: 56px; }
       button { margin-top: 8px; width: 100%; }
+      .hidden { display: none; }
+      .toggle { margin-top: 10px; font-size: 12px; }
+      .toggle input { width: auto; margin-right: 6px; vertical-align: middle; }
     </style>
   </head>
   <body>
     <h1>ToThread Capture</h1>
-    <div id="status">Checking current tab...</div>
-    <button id="refresh" type="button">Refresh Status</button>
+    <button id="finalize-save" type="button">Finalize + Save</button>
+    <div id="message">Ready.</div>
+    <button id="start" type="button">Start Session</button>
+    <button id="stop" type="button">Stop Session</button>
+    <label class="toggle">
+      <input id="debug-toggle" type="checkbox" />
+      Debug Mode
+    </label>
+    <div id="debug-panel" class="hidden">
+      <label>
+        Backend Base URL
+        <input id="backend-url" type="text" placeholder="https://your-worker.example.com" />
+      </label>
+      <label>
+        Google ID Token (Bearer)
+        <textarea id="id-token" placeholder="Paste token after Google login"></textarea>
+      </label>
+      <button id="save-settings" type="button">Save Settings</button>
+      <button id="open-login" type="button">Open Backend Login Page</button>
+      <button id="import-token" type="button">Import Token From Backend Tab</button>
+      <button id="save-draft" type="button">Save Draft to RawWriting</button>
+      <button id="capture" type="button">Capture Latest Turn</button>
+      <button id="draft" type="button">Show Draft</button>
+      <button id="debug" type="button">Debug Snapshot</button>
+      <button id="refresh" type="button">Refresh Status</button>
+      <div id="status">Debug output hidden</div>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

@@ -8,6 +8,10 @@ export function base64EncodeUtf8(text) {
   return btoa(unescape(encodeURIComponent(text)));
 }
 
+export function base64DecodeUtf8(b64) {
+  return decodeURIComponent(escape(atob(b64)));
+}
+
 export function ensureTrailingSlash(url) {
   return url.endsWith("/") ? url : url + "/";
 }
@@ -66,6 +70,83 @@ export async function giteaRequest(env, url, method, bodyObj) {
   }
 
   return data;
+}
+
+async function giteaRequestRaw(env, url, method, bodyObj) {
+  const token = getGitToken(env);
+  if (!token) {
+    throw new Error("Missing GIT_TOKEN_ATTENTION secret");
+  }
+
+  const headers = {
+    "content-type": "application/json; charset=utf-8",
+    Authorization: `token ${token}`,
+    Accept: "application/json",
+  };
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: bodyObj ? JSON.stringify(bodyObj) : undefined,
+  });
+
+  const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text };
+  }
+
+  return { ok: res.ok, status: res.status, data };
+}
+
+export async function getRepoFile(env, filePath, branch) {
+  const url = buildGiteaContentsUrl(env, filePath);
+  const urlWithRef = branch ? `${url}?ref=${encodeURIComponent(branch)}` : url;
+  const res = await giteaRequestRaw(env, urlWithRef, "GET");
+
+  if (res.status === 404) {
+    return { exists: false };
+  }
+  if (!res.ok) {
+    const msg =
+      (res.data && (res.data.message || res.data.error)) ||
+      (typeof res.data?.raw === "string" && res.data.raw.trim()) ||
+      `HTTP ${res.status}`;
+    throw new Error(`Gitea API error: ${msg}`);
+  }
+
+  const contentBase64 = res.data && res.data.content ? res.data.content.replace(/\n/g, "") : "";
+  const content = contentBase64 ? base64DecodeUtf8(contentBase64) : "";
+  return {
+    exists: true,
+    sha: res.data.sha,
+    content,
+    encoding: res.data.encoding || "base64",
+  };
+}
+
+export async function createOrUpdateRepoFile(env, filePath, content, message, branch) {
+  const existing = await getRepoFile(env, filePath, branch);
+  const method = existing.exists ? "PUT" : "POST";
+  const url = buildGiteaContentsUrl(env, filePath);
+
+  const body = {
+    content: base64EncodeUtf8(content),
+    message,
+    branch,
+  };
+  if (existing.exists && existing.sha) {
+    body.sha = existing.sha;
+  }
+
+  const result = await giteaRequest(env, url, method, body);
+  return {
+    action: existing.exists ? "updated" : "created",
+    filePath,
+    result,
+  };
 }
 
 export function generateWritingFileName(content) {
