@@ -10,11 +10,54 @@
     <script src="../Script.js" defer></script>
 </head>
 <body>
-    <img src="../Icon.png" width="128" height="128" alt="ToThreadCapture Icon">
-    <p class="platform-ios">You can turn on ToThreadCapture’s Safari extension in Settings.</p>
-    <p class="platform-mac state-unknown">You can turn on ToThreadCapture’s extension in Safari Extensions preferences.</p>
-    <p class="platform-mac state-on">ToThreadCapture’s extension is currently on. You can turn it off in Safari Extensions preferences.</p>
-    <p class="platform-mac state-off">ToThreadCapture’s extension is currently off. You can turn it on in Safari Extensions preferences.</p>
-    <button class="platform-mac open-preferences">Quit and Open Safari Extensions Preferences…</button>
+    <!-- Extension Instructions Section -->
+    <div id="extension-section">
+        <img src="../Icon.png" width="128" height="128" alt="ToThreadCapture Icon">
+        <p class="platform-ios">You can turn on ToThreadCapture's Safari extension in Settings.</p>
+        <p class="platform-mac state-unknown">You can turn on ToThreadCapture's extension in Safari Extensions preferences.</p>
+        <p class="platform-mac state-on">ToThreadCapture's extension is currently on. You can turn it off in Safari Extensions preferences.</p>
+        <p class="platform-mac state-off">ToThreadCapture's extension is currently off. You can turn it on in Safari Extensions preferences.</p>
+        <button class="platform-mac open-preferences">Quit and Open Safari Extensions Preferences…</button>
+    </div>
+
+    <!-- Plan Viewer Section (iOS only) -->
+    <div id="plan-section" class="platform-ios" style="display: none; padding: 20px;">
+        <div id="plan-login" style="text-align: center;">
+            <h2>Project Plan</h2>
+            <p>Sign in with Google to view and manage your project plan.</p>
+            <button id="google-login-btn">Sign in with Google</button>
+        </div>
+
+        <div id="plan-view" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>Project Plan</h2>
+                <button id="refresh-btn" title="Refresh">⟳</button>
+            </div>
+
+            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                Last sync: <span id="last-sync">—</span>
+            </div>
+
+            <label style="margin-bottom: 10px; display: block;">
+                <input type="checkbox" id="show-finished-toggle" checked>
+                Show finished tasks
+            </label>
+
+            <button id="add-task-btn" style="margin-bottom: 15px;">+ Add Task</button>
+
+            <div id="tasks-container" style="border: 1px solid #ddd; border-radius: 8px; padding: 10px;">
+                <p id="loading" style="text-align: center; color: #999;">Loading tasks...</p>
+                <div id="task-list"></div>
+            </div>
+
+            <div style="margin-top: 15px; text-align: center;">
+                <button id="logout-btn" style="background-color: #f0f0f0; color: #333;">Sign Out</button>
+            </div>
+        </div>
+
+        <div id="plan-error" style="display: none; background-color: #fee; border: 1px solid #f99; border-radius: 4px; padding: 10px; color: #c00;">
+            <span id="error-message"></span>
+        </div>
+    </div>
 </body>
 </html>

@@ -582,21 +582,72 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Add functions to fetch file content and update file in repo.
   - Reuse existing Gitea API client and branch config.
 
-- [ ] **Step 14.4 — iPhone UI for plan viewing/editing**
-  - Add a native “Project Plan” screen inside the iOS app (not Safari).
-  - Render markdown as plain text editor (v1).
-  - Provide `Load`, `Edit`, `Save` actions with clear success/error messages.
-
-- [ ] **Step 14.4b — Native Google sign‑in in app**
-  - Add Google sign‑in in the iOS app (no web page).
-  - Store ID token securely for backend calls.
+- [X] **Step 14.4 — Google sign‑in in iOS app (native)**
+  - Use **Authorization Code + PKCE** with `ASWebAuthenticationSession` (no web‑based implicit flow).
+  - OAuth client: **iOS** client ID (not web) and **REVERSED_CLIENT_ID** URL scheme in Info.plist.
+  - Redirect URI: `com.googleusercontent.apps.<client-id>:/oauth2redirect`.
+  - Exchange the auth code at `https://oauth2.googleapis.com/token` for `id_token`.
+  - Store `id_token` in Keychain; inject into the app WebView for backend calls.
+  - All plan actions require a valid token; auth failure triggers login flow.
   - Reuse allowlist enforcement on backend.
+  - Sub‑steps for setup:
+    - [X] **Step 14.4.1 — Capture iOS bundle ID**
+      - In Xcode, open iOS app target → Signing & Capabilities → copy Bundle Identifier.
+      - com.zhian.tothread.capture
+    - [X] **Step 14.4.2 — Create iOS OAuth Client ID**
+      - Google Cloud Console → Credentials → Create OAuth client ID → iOS.
+      - Use the bundle ID from Step 14.4.1.
+      - Record the iOS Client ID.
+      - The client id is 130905058858-bnb68ubnn1v0af5hm7idva5ilr2pgtvk.apps.googleusercontent.com
+    - [X] **Step 14.4.3 — Derive REVERSED_CLIENT_ID**
+      - Transform the iOS Client ID into `com.googleusercontent.apps.<client-id>`.
+      - Record it for Info.plist URL scheme.
+      - the reversed client id is com.googleusercontent.apps.130905058858-bnb68ubnn1v0af5hm7idva5ilr2pgtvk
+    - [ ] **Step 14.4.4 — Implement ASWebAuthenticationSession + PKCE**
+      - Build the OAuth URL with `code_challenge` and `code_challenge_method=S256`.
+      - Start the session and capture the `code` from the redirect.
+    - [ ] **Step 14.4.5 — Exchange code for tokens**
+      - POST to Google token endpoint with `code_verifier`.
+      - Extract `id_token`, store in Keychain.
+    - [ ] **Step 14.4.6 — Wire token into plan UI**
+      - Send `id_token` to the WebView (JS bridge).
+      - Ensure `/plan` and CRUD calls attach `Authorization: Bearer <id_token>`.
 
-- [ ] **Step 14.5 — Conflict/overwrite strategy**
-  - Decide on overwrite policy (last‑write‑wins).
-  - Optional: include a `sha`/ETag to prevent accidental overwrite.
 
-- [ ] **Step 14.6 — End‑to‑end test**
+- [ ] **Step 14.5 — iPhone UI for plan viewing (hierarchy navigator)**
+  - Add a native “Project Plan” screen inside the iOS app (not Safari).
+  - **Screen layout (v1):**
+    - Top bar: title “Project Plan” + back button (disabled at root).
+    - Subheader: last sync time + toggle show/hide finished tasks + `+` add top‑level task + refresh.
+    - Primary list: tasks at the current level only (no parent + children together).
+    - Each row shows: title, child count (with unfinished indicator), `Done` button (if allowed), `Add Subtask`, `Details`.
+  - **Rules:**
+    - If a task has unfinished subtasks, `Done` does not mark the parent done.
+    - Continuous tasks have no `Done` button; status changes only in Details.
+  - **Navigation model:**
+    - Tap a task row to drill into its subtasks (push screen).
+    - Back button returns to parent level; repeated back returns to root.
+    - Subtask list and Details never show together.
+  - **List interactions:**
+    - Swipe left: `Delete`.
+  - **Create task flow:**
+    - `+` at current level creates a task at that level.
+  - **Sync and feedback:**
+    - Pull‑to‑refresh reloads current level.
+    - Any backend action is gated by token; failures trigger login flow.
+    - On error, keep local edits minimal and prompt user to retry.
+
+- [ ] **Step 14.6 — Task details screen (terminal view)**
+  - Separate Details screen (no subtask list visible here).
+  - Fields: title, description, results, status.
+  - Leaving Details (Back or tap outside) auto‑saves changes.
+  - Details is a terminal navigation (back only goes to parent list).
+
+- [X] **Step 14.7 — Conflict/overwrite strategy**
+  - Decision: last‑write‑wins at API level (server applies requested change to latest plan).
+  - Future option: include `sha`/ETag in responses and require it on updates for optimistic locking.
+
+- [ ] **Step 14.8 — End‑to‑end test**
   - Load plan on iPhone.
   - Edit a section and save.
   - Verify changes in repo and Git history.

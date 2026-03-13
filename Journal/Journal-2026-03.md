@@ -544,3 +544,83 @@ Result: node_modules will be ignored and npm install will work in webApp/backend
 Prompt: "now steps are all done for movoing to step 4.  Please update project plan."
 Action: Marked Phase 14 Step 14.3 complete.
 Result: ProjectPlan.md updated; Step 14.4 is next.
+
+## Entry 110
+Prompt: "Now, lets resume working on this feature and do step 5.  BTW, have you been logging all my prompts?"
+Action: Completed Step 14.5 by deciding last‑write‑wins with optional future sha/ETag locking; confirmed prompt logging.
+Result: ProjectPlan.md updated and logging confirmed.
+
+## Entry 111
+Prompt: "The UI is not described in the details level I want to see.  Can you add the details of the UI, including all the detailed display and  intereactions in the ProjectPlan.md so I can check and modify before we implement it?"
+Action: Expanded Step 14.4 with detailed iPhone UI layout and interaction specs.
+Result: ProjectPlan.md now contains detailed UI/interaction requirements for plan management.
+
+## Entry 112
+Prompt: "I edited the ProjectPlan.md with my thoughts.  It seemed we need to 1. move google login higher as anything we do will need to be gated with that. 2. I wanto seperate the subtask and details view so they do not overlap at all and leaving them will save.  I also do not want to see many things together like parent task vs. subtasks so one at the time and back button to go to parent. Details is a ending nagivation.  Subtask can drill down to further substasks with back button to go up to parent, till back to the root level.  Please update the projectPlan.md to verify the workflows do not have gaps, can be implemented without dangling dependencies.  If needed, please seperate them into subtasks as needed with checkbox if they need to be implemented in different steps."
+Action: Reordered Phase 14 to put native Google sign‑in first, split UI into hierarchy navigator and separate terminal Details screen, and clarified navigation/workflow rules.
+Result: ProjectPlan.md updated with non‑overlapping views, drill‑down navigation, and save‑on‑leave behavior.
+
+## Entry 113
+Prompt: "Three are the same:  /Users/zhian/Projects/ToThread/ios/ToThreadCaptureApp/ToThreadCapture/iOS (App)/AppDelegate.swift:48:48 Instance method 'evaluateJavaScript(_:completionHandler:)' is not available due to missing import of defining module 'WebKit'"
+Action: Added missing `import WebKit` to AppDelegate.swift.
+Result: Build error for evaluateJavaScript resolved.
+
+## Entry 114
+Prompt: "The app is up and running.  But click on the Sign in with Google seemed to do nothing.  I clicked on sign out and then sign in with google and still nothing happens."
+Action: Fixed iOS app plan UI: removed inline onclicks blocked by CSP, wired event listeners in Script.js, ensured plan section shows, corrected backend base URL, and updated /plan handling to parse YAML and render hierarchical tasks.
+Result: Sign‑in button now triggers native OAuth flow and plan view loads data from /plan.
+
+## Entry 115
+Prompt: "Google says Access blocked.  Authorizztion Error.  You can't sign into this app because it doesn/t comply with Google's Oauth 2.0 policy for keeping apps secure.  You can let the app developer know that this app doesn't comply with one or more Google validation rules.  (then a link \"Learn more about this error\".  If you are a developer of ToThread, a link see error details. Then error 400:  invalid_request."
+Action: Explained OAuth error cause and recommended switching to Google Sign‑In SDK / Authorization Code with PKCE for native iOS; outlined required OAuth client configuration.
+Result: Provided concrete fix path and offered to implement.
+
+## Entry 116
+Prompt: "Please add these three things as steps in my ProjectPlan.md so I can do them one at a time and record the results for reference."
+Action: Added sub‑steps 14.4.1–14.4.3 under Step 14.4 for bundle ID, iOS OAuth client ID, and REVERSED_CLIENT_ID; updated Step 14.4 to native sign‑in.
+Result: ProjectPlan.md now includes the three actionable setup steps.
+
+## Entry 117
+Prompt: "These information is not secrets, right?"
+Action: Clarified which items are public vs secret in OAuth setup.
+Result: Confirmed bundle ID and client ID are not secrets; tokens and client secrets are sensitive.
+
+## Entry 118
+Prompt: "It is com.zhian.tothread.capture"
+Action: Recorded the resolved iOS bundle ID for Step 14.4.1.
+Result: Bundle ID confirmed: com.zhian.tothread.capture.
+
+## Entry 119
+Prompt: "The client id is 130905058858-bnb68ubnn1v0af5hm7idva5ilr2pgtvk.apps.googleusercontent.com"
+Action: Derived REVERSED_CLIENT_ID and confirmed for Step 14.4.3.
+Result: REVERSED_CLIENT_ID is com.googleusercontent.apps.130905058858-bnb68ubnn1v0af5hm7idva5ilr2pgtvk.
+
+## Entry 120
+Prompt: "Now I have all the needed info. Please make the change to 14.4 to make login to google work."
+Action: Implemented native Google OAuth (PKCE) in iOS app using ASWebAuthenticationSession, updated Info.plist with REVERSED_CLIENT_ID scheme, and added iOS client constants.
+Result: Google sign‑in flow should comply with policy and return ID token for backend use.
+
+## Entry 121
+Prompt: "Now I have all the needed info. Please make the change to 14.4 to make login to google work."
+Action: Updated Step 14.4 in ProjectPlan.md to specify ASWebAuthenticationSession + PKCE flow, redirect URI, token exchange, Keychain storage, and WebView token injection; added sub-steps 14.4.4–14.4.6.
+Result: Project plan now spells out the concrete native OAuth implementation steps.
+
+## Entry 122
+Prompt: "If that is done, please give me steps to verify."
+Action: Provided concrete verification steps for native Google OAuth in the iOS app (ASWebAuthenticationSession + PKCE), including Info.plist scheme, sign-in flow, token storage, and backend call validation.
+Result: User has a step-by-step checklist to verify login works end to end.
+
+## Entry 123
+Prompt: "XCode has error:  /Users/zhian/Projects/ToThread/ios/ToThreadCaptureApp/ToThreadCapture/Shared (App)/ViewController.swift:147:35 Type 'Self' has no member 'queryValue'"
+Action: Added a static URL query helper `queryValue(from:name:)` to ViewController.swift and used URLComponents to parse the OAuth callback.
+Result: The missing `Self.queryValue` compile error is resolved.
+
+## Entry 124
+Prompt: "Good.  I was able to verify the login and logout workflows."
+Action: Acknowledged verification success; no code changes required.
+Result: Login/logout flow confirmed working.
+
+## Entry 125
+Prompt: "Makr 14.4 as completed.  I will take a break and continue later."
+Action: Marked Step 14.4 as completed in ProjectPlan.md.
+Result: Step 14.4 is now checked off.
