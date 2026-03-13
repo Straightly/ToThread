@@ -331,10 +331,10 @@ async function addTopLevelTask() {
     if (!title) return;
 
     try {
-        const result = await apiCall("/plan/tasks", "POST", { parentId: null, task: { title, status: "Pending" } });
+        const currentParentId = navigationStack.length ? navigationStack[navigationStack.length - 1] : null;
+        const result = await apiCall("/plan/tasks", "POST", { parentId: currentParentId, task: { title, status: "Pending" } });
         if (result && result.task) {
-            insertTaskIntoPlan(null, result.task);
-            navigationStack = [];
+            insertTaskIntoPlan(currentParentId, result.task);
             renderCurrentLevel();
             updateLastSyncTime();
         } else {

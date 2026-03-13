@@ -774,3 +774,8 @@ Result: The UI now reports loading failures accurately instead of showing empty 
 Prompt: "It is working now. "
 Action: Acknowledged successful behavior after load state/timeout changes.
 Result: Plan loading issue resolved.
+
+## Entry 156
+Prompt: "Let's do 14.5.3 so I can test 14.5.1 fully."
+Action: Updated Add Task to create a subtask when inside a task (uses current navigation stack parent), and top-level task at root.
+Result: Add Task now respects the current level context.

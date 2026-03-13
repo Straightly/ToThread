@@ -632,7 +632,7 @@ This backend will eventually replace the GitHub-API-based storage model used by 
     - Swipe left: `Delete`.
   - **Status:** v1 implemented. Drill‑down navigation still missing in the running build.
 
-- [ ] **Step 14.5.1 — Drill‑down navigation for subtasks**
+- [X] **Step 14.5.1 — Drill‑down navigation for subtasks**
   - Tapping a task with children navigates into its subtask list.
   - Show child count indicator at parent level.
   - Back returns to parent (and eventually root).
@@ -642,7 +642,7 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - When tapping `Done`, update the local UI after the backend returns the updated task.
   - Refresh from backend after save to confirm.
 
-- [ ] **Step 14.5.3 — Add task in current level**
+- [X] **Step 14.5.3 — Add task in current level**
   - When inside a task, `+ Add Task` should create a subtask under the current task.
   - At root, `+ Add Task` creates a top‑level task.
   - **Create task flow:**
