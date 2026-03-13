@@ -614,7 +614,7 @@ This backend will eventually replace the GitHub-API-based storage model used by 
       - Ensure `/plan` and CRUD calls attach `Authorization: Bearer <id_token>`.
 
 
-- [ ] **Step 14.5 — iPhone UI for plan viewing (hierarchy navigator)**
+- [X] **Step 14.5 — iPhone UI for plan viewing (hierarchy navigator)**
   - Add a native “Project Plan” screen inside the iOS app (not Safari).
   - **Screen layout (v1):**
     - Top bar: title “Project Plan” + back button (disabled at root).
@@ -630,6 +630,13 @@ This backend will eventually replace the GitHub-API-based storage model used by 
     - Subtask list and Details never show together.
   - **List interactions:**
     - Swipe left: `Delete`.
+  - **Status:** v1 implemented. Drill‑down navigation still missing in the running build.
+
+- [ ] **Step 14.5.1 — Drill‑down navigation for subtasks**
+  - Tapping a task with children navigates into its subtask list.
+  - Show child count indicator at parent level.
+  - Back returns to parent (and eventually root).
+  - Verify at least 2‑level nesting works.
   - **Create task flow:**
     - `+` at current level creates a task at that level.
   - **Sync and feedback:**

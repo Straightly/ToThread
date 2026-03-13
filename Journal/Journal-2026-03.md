@@ -624,3 +624,53 @@ Result: Login/logout flow confirmed working.
 Prompt: "Makr 14.4 as completed.  I will take a break and continue later."
 Action: Marked Step 14.4 as completed in ProjectPlan.md.
 Result: Step 14.4 is now checked off.
+
+## Entry 126
+Prompt: "Let's move on to step 14.5"
+Action: Implemented hierarchy navigator UI: added back button, current-level display, drill-down navigation, per-level task list, add subtask, delete task, and updated rendering logic in iOS WebView plan UI.
+Result: Plan UI now shows only the current level, supports back navigation, and provides row actions for Done/Add Subtask/Delete/Details.
+
+## Entry 127
+Prompt: "Got error in XCode saying : /Users/zhian/Projects/ToThread/ios/ToThreadCaptureApp/ToThreadCapture/iOS (App)/AppDelegate.swift:36:28 Immutable value 'window' was never used; consider replacing with '_' or removing it"
+Action: Removed the unused `window` binding in AppDelegate.swift.
+Result: The unused variable error is resolved.
+
+## Entry 128
+Prompt: "App is running.  Showing Load failed.  clicking Add task does not seem to do anything."
+Action: Updated WebView CSP to allow backend fetch; implemented WKUIDelegate handlers to support alert/confirm/prompt dialogs so Add Task and Delete can show prompts.
+Result: Plan API calls are no longer blocked by CSP, and Add Task should prompt correctly on iOS.
+
+## Entry 129
+Prompt: "The app starts show lad failed.  sign out and sign in again show \"null is not an object (evaluating 'loading.style')"
+Action: Added DOM readiness guards and retry logic in Script.js for plan UI elements before accessing `loading.style` and related elements.
+Result: Prevents null element errors during early token injection or rapid login flow.
+
+## Entry 130
+Prompt: "This time, none of the project managment UI component even show up."
+Action: Forced iOS UI enablement on DOMContentLoaded by detecting `webkit.messageHandlers` and adding `platform-ios` class; ensured plan section is displayed and updateUIForAuth runs.
+Result: Plan UI should render consistently even if the native `show('ios')` callback is delayed.
+
+## Entry 131
+Prompt: "Got load failed.  Did not see where is the red box showing error message.  All I see if a wite box under Sign out button saying \"Load failed\".  Tried sign out and sign in again and got the same result."
+Action: Added CORS headers and OPTIONS preflight handling in backend; wrapped /plan response with CORS; updated plan UI to surface errors in the loading area when the red error box isn't visible.
+Result: Backend now supports cross-origin fetch from WKWebView; UI will show clearer error messages.
+
+## Entry 132
+Prompt: "Nothing seemed to have changed except that the error message changed form Load failed to \"Authentication failed\".  It was displayed when the app starts, after log in, and after I log out."
+Action: Guarded plan loading when no auth token and suppressed error display on 401/403-triggered logout to avoid showing "Authentication failed" after logout or startup with expired token.
+Result: App should return to login state silently when token is missing/expired.
+
+## Entry 133
+Prompt: "Do see any error message until I clicked on add task and a task and a dialog comes up.  added a title the got \"Failed to add task: Authentication failed.\""
+Action: Updated backend auth to accept both web and iOS Google client IDs by adding GOOGLE_IOS_CLIENT_ID and audience matching against either.
+Result: iOS-issued ID tokens should now pass backend validation.
+
+## Entry 134
+Prompt: "No more errors.  Add task comes up but after adding task and clicked OK, nothing change.  Maybe we need to reload the list upon save?"
+Action: Updated add task/subtask flows to insert the returned task into local plan data and re-render immediately; fallback to reload if response is missing.
+Result: Added tasks should now appear instantly after creation.
+
+## Entry 135
+Prompt: "It worked.  I was able to add tasks. login and logout worked to show the tasks and ask me to login.  Please update the projectplan to mark completed tasks.  Also, I did not see the a subtask to move into a task to see its subtasks.  Please add a step to implement that."
+Action: Marked Step 14.5 as completed and added Step 14.5.1 for drill‑down navigation into subtasks in ProjectPlan.md.
+Result: Plan reflects current completion and the missing drill‑down requirement is captured as a new step.

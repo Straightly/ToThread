@@ -35,13 +35,23 @@ let currentPlanData = null;
 let showFinishedTasks = true;
 const BACKEND_BASE = "https://tothread-webapp.zhian-job.workers.dev";
 const planIndex = new Map();
+let navigationStack = [];
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.oauthHandler) {
+        document.body.classList.add("platform-ios");
+        const planSection = document.getElementById("plan-section");
+        if (planSection) {
+            planSection.style.display = "block";
+        }
+    }
+
     if (document.body.classList.contains("platform-ios")) {
         retrieveStoredToken();
     }
     wirePlanUiHandlers();
+    updateUIForAuth();
 });
 
 // ===== Google OAuth & Token Management =====
@@ -71,6 +81,11 @@ function updateUIForAuth() {
     const loginSection = document.getElementById("plan-login");
     const viewSection = document.getElementById("plan-view");
     const planSection = document.getElementById("plan-section");
+
+    if (!loginSection || !viewSection || !planSection) {
+        setTimeout(updateUIForAuth, 50);
+        return;
+    }
 
     if (authToken) {
         loginSection.style.display = "none";
@@ -134,9 +149,18 @@ async function apiCall(endpoint, method = "GET", body = null) {
 }
 
 async function loadPlanData() {
+    if (!authToken) {
+        return;
+    }
+
     const container = document.getElementById("tasks-container");
     const loading = document.getElementById("loading");
     const errorDiv = document.getElementById("plan-error");
+
+    if (!container || !loading || !errorDiv) {
+        setTimeout(loadPlanData, 50);
+        return;
+    }
 
     try {
         errorDiv.style.display = "none";
@@ -147,75 +171,122 @@ async function loadPlanData() {
         const data = parseYaml(raw);
         currentPlanData = data;
         planIndex.clear();
+        navigationStack = [];
         const rootTasks = data.sections || data.tasks || [];
         indexTasks(rootTasks);
-        renderTaskTree(rootTasks, 0);
+        renderCurrentLevel();
         updateLastSyncTime();
     } catch (error) {
+        if (error.message === "Authentication failed") {
+            return;
+        }
         showError(error.message);
     } finally {
         loading.style.display = "none";
     }
 }
 
-function renderTaskTree(tasks, level = 0) {
+function renderCurrentLevel() {
     const container = document.getElementById("tasks-container");
     const taskList = document.getElementById("task-list") || container;
+    const backBtn = document.getElementById("back-btn");
+    const levelLabel = document.getElementById("current-level");
+
+    taskList.innerHTML = "";
+
+    const { tasks, parent } = getTasksAtCurrentLevel();
+
+    if (backBtn) {
+        backBtn.disabled = navigationStack.length === 0;
+    }
+
+    if (levelLabel) {
+        levelLabel.textContent = parent ? parent.title : "Root";
+    }
+
+    if (!tasks.length) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "padding: 12px; color: #777; text-align: center;";
+        empty.textContent = "No tasks at this level.";
+        taskList.appendChild(empty);
+        return;
+    }
 
     tasks.forEach(task => {
         if (!task) return;
-        if (!showFinishedTasks && String(task.status || "").toLowerCase() === "done") return;
+        if (!showFinishedTasks && isDone(task)) return;
+
         const row = document.createElement("div");
         row.style.cssText = `
             padding: 10px;
             border-bottom: 1px solid #eee;
-            margin-left: ${level * 20}px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         `;
 
-        const children = Array.isArray(task.tasks) ? task.tasks : [];
-        const childCount = children.length;
-        const doneCount = children.filter(t => String(t.status || "").toLowerCase() === "done").length;
-
         const titleSpan = document.createElement("span");
-        titleSpan.textContent = task.title;
+        titleSpan.textContent = task.title || "(Untitled)";
         titleSpan.style.flex = "1";
-        if (String(task.status || "").toLowerCase() === "done") {
+        if (isDone(task)) {
             titleSpan.style.textDecoration = "line-through";
             titleSpan.style.color = "#999";
         }
-
         row.appendChild(titleSpan);
 
+        const children = Array.isArray(task.tasks) ? task.tasks : [];
+        const childCount = children.length;
+        const unfinishedCount = children.filter(t => !isDone(t)).length;
         if (childCount > 0) {
             const childBadge = document.createElement("span");
-            childBadge.textContent = `${childCount - doneCount}/${childCount}`;
+            childBadge.textContent = `${unfinishedCount}/${childCount}`;
             childBadge.style.cssText = "font-size: 12px; background: #f0f0f0; padding: 2px 6px; border-radius: 3px;";
             row.appendChild(childBadge);
         }
 
-        if (String(task.status || "").toLowerCase() !== "done" && childCount === 0) {
+        if (!isDone(task) && unfinishedCount === 0 && !isContinuous(task)) {
             const doneBtn = document.createElement("button");
-            doneBtn.textContent = "✓";
-            doneBtn.style.cssText = "padding: 4px 8px; font-size: 14px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;";
-            doneBtn.onclick = () => markTaskDone(task.id);
+            doneBtn.textContent = "Done";
+            doneBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;";
+            doneBtn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                markTaskDone(task.id);
+            });
             row.appendChild(doneBtn);
         }
 
+        const addSubBtn = document.createElement("button");
+        addSubBtn.textContent = "+ Sub";
+        addSubBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;";
+        addSubBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            addSubtask(task.id);
+        });
+        row.appendChild(addSubBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #f8d7da; color: #8a1c1c; border: 1px solid #f5c2c7; border-radius: 3px; cursor: pointer;";
+        deleteBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            deleteTask(task.id);
+        });
+        row.appendChild(deleteBtn);
+
         const detailsBtn = document.createElement("button");
-        detailsBtn.textContent = "…";
-        detailsBtn.style.cssText = "padding: 4px 8px; font-size: 14px; background: #2196F3; color: white; border: none; border-radius: 3px; cursor: pointer;";
-        detailsBtn.onclick = () => showTaskDetails(task);
+        detailsBtn.textContent = "Details";
+        detailsBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #2196F3; color: white; border: none; border-radius: 3px; cursor: pointer;";
+        detailsBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            showTaskDetails(task);
+        });
         row.appendChild(detailsBtn);
 
-        taskList.appendChild(row);
+        row.addEventListener("click", () => {
+            navigateToTask(task);
+        });
 
-        // Recursively render child tasks
-        if (childCount > 0) {
-            renderTaskTree(children, level + 1);
-        }
+        taskList.appendChild(row);
     });
 }
 
@@ -240,10 +311,47 @@ async function addTopLevelTask() {
     if (!title) return;
 
     try {
-        await apiCall("/plan/tasks", "POST", { parentId: null, task: { title, status: "Pending" } });
-        loadPlanData();
+        const result = await apiCall("/plan/tasks", "POST", { parentId: null, task: { title, status: "Pending" } });
+        if (result && result.task) {
+            insertTaskIntoPlan(null, result.task);
+            navigationStack = [];
+            renderCurrentLevel();
+            updateLastSyncTime();
+        } else {
+            loadPlanData();
+        }
     } catch (error) {
         showError(`Failed to add task: ${error.message}`);
+    }
+}
+
+async function addSubtask(parentId) {
+    const title = prompt("Enter subtask title:");
+    if (!title) return;
+
+    try {
+        const result = await apiCall("/plan/tasks", "POST", { parentId, task: { title, status: "Pending" } });
+        if (result && result.task) {
+            insertTaskIntoPlan(parentId, result.task);
+            renderCurrentLevel();
+            updateLastSyncTime();
+        } else {
+            loadPlanData();
+        }
+    } catch (error) {
+        showError(`Failed to add subtask: ${error.message}`);
+    }
+}
+
+async function deleteTask(taskId) {
+    const confirmed = confirm("Delete this task?");
+    if (!confirmed) return;
+
+    try {
+        await apiCall(`/plan/tasks/${taskId}`, "DELETE");
+        loadPlanData();
+    } catch (error) {
+        showError(`Failed to delete task: ${error.message}`);
     }
 }
 
@@ -254,8 +362,7 @@ async function refreshPlan() {
 function toggleShowFinished() {
     showFinishedTasks = document.getElementById("show-finished-toggle").checked;
     if (currentPlanData) {
-        document.getElementById("task-list").innerHTML = "";
-        renderTaskTree(currentPlanData.sections || currentPlanData.tasks || [], 0);
+        renderCurrentLevel();
     }
 }
 
@@ -268,8 +375,16 @@ function updateLastSyncTime() {
 function showError(message) {
     const errorDiv = document.getElementById("plan-error");
     const errorMsg = document.getElementById("error-message");
-    errorMsg.textContent = message;
-    errorDiv.style.display = "block";
+    if (errorMsg) {
+        errorMsg.textContent = message;
+    }
+    if (errorDiv) {
+        errorDiv.style.display = "block";
+    }
+    const loading = document.getElementById("loading");
+    if (loading) {
+        loading.textContent = message;
+    }
 }
 
 function indexTasks(tasks) {
@@ -280,6 +395,71 @@ function indexTasks(tasks) {
             indexTasks(task.tasks);
         }
     }
+}
+
+function getRootTaskList() {
+    if (!currentPlanData || typeof currentPlanData !== "object") {
+        currentPlanData = {};
+    }
+    if (Array.isArray(currentPlanData.sections)) return currentPlanData.sections;
+    if (!Array.isArray(currentPlanData.tasks)) currentPlanData.tasks = [];
+    return currentPlanData.tasks;
+}
+
+function insertTaskIntoPlan(parentId, task) {
+    if (!task || !task.id) return;
+    planIndex.set(task.id, task);
+
+    if (!parentId) {
+        const root = getRootTaskList();
+        root.push(task);
+        return;
+    }
+
+    const parent = planIndex.get(parentId);
+    if (!parent) {
+        loadPlanData();
+        return;
+    }
+    if (!Array.isArray(parent.tasks)) parent.tasks = [];
+    parent.tasks.push(task);
+}
+
+function getTasksAtCurrentLevel() {
+    const rootTasks = currentPlanData?.sections || currentPlanData?.tasks || [];
+    if (!navigationStack.length) {
+        return { tasks: rootTasks, parent: null };
+    }
+
+    let tasks = rootTasks;
+    let parent = null;
+
+    for (const taskId of navigationStack) {
+        parent = tasks.find(t => t && t.id === taskId) || planIndex.get(taskId);
+        tasks = Array.isArray(parent?.tasks) ? parent.tasks : [];
+    }
+
+    return { tasks, parent };
+}
+
+function navigateToTask(task) {
+    if (!task || !task.id) return;
+    navigationStack.push(task.id);
+    renderCurrentLevel();
+}
+
+function navigateBack() {
+    if (navigationStack.length === 0) return;
+    navigationStack.pop();
+    renderCurrentLevel();
+}
+
+function isDone(task) {
+    return String(task?.status || "").toLowerCase() === "done";
+}
+
+function isContinuous(task) {
+    return String(task?.status || "").toLowerCase() === "continuous";
 }
 
 function parseYaml(text) {
@@ -368,10 +548,12 @@ function wirePlanUiHandlers() {
     const addBtn = document.getElementById("add-task-btn");
     const showFinished = document.getElementById("show-finished-toggle");
     const logoutBtn = document.getElementById("logout-btn");
+    const backBtn = document.getElementById("back-btn");
 
     if (loginBtn) loginBtn.addEventListener("click", startGoogleLogin);
     if (refreshBtn) refreshBtn.addEventListener("click", refreshPlan);
     if (addBtn) addBtn.addEventListener("click", addTopLevelTask);
     if (showFinished) showFinished.addEventListener("change", toggleShowFinished);
     if (logoutBtn) logoutBtn.addEventListener("click", logout);
+    if (backBtn) backBtn.addEventListener("click", navigateBack);
 }

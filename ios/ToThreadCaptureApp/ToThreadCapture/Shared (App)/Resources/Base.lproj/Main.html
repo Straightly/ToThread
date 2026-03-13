@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://tothread-webapp.zhian-job.workers.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
 
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
@@ -29,9 +29,14 @@
         </div>
 
         <div id="plan-view" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2>Project Plan</h2>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <button id="back-btn" disabled>← Back</button>
+                <h2 style="margin: 0; flex: 1;">Project Plan</h2>
                 <button id="refresh-btn" title="Refresh">⟳</button>
+            </div>
+
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                Level: <span id="current-level">Root</span>
             </div>
 
             <div style="font-size: 12px; color: #666; margin-bottom: 10px;">

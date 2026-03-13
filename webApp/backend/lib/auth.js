@@ -28,7 +28,7 @@ export async function verifyGoogleIdToken(token, env) {
   if (!token) {
     throw new Error("Missing ID token");
   }
-  if (!env.GOOGLE_CLIENT_ID) {
+  if (!env.GOOGLE_CLIENT_ID && !env.GOOGLE_IOS_CLIENT_ID) {
     throw new Error("GOOGLE_CLIENT_ID is not configured");
   }
 
@@ -45,8 +45,13 @@ export async function verifyGoogleIdToken(token, env) {
   }
 
   const aud = claims.aud;
-  const expected = env.GOOGLE_CLIENT_ID;
-  const audMatch = Array.isArray(aud) ? aud.includes(expected) : aud === expected;
+  const expectedAudiences = [
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_IOS_CLIENT_ID,
+  ].filter(Boolean);
+  const audMatch = Array.isArray(aud)
+    ? aud.some((value) => expectedAudiences.includes(value))
+    : expectedAudiences.includes(aud);
   if (!audMatch) {
     throw new Error("ID token audience does not match GOOGLE_CLIENT_ID");
   }

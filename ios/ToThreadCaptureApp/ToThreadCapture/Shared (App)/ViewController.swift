@@ -27,7 +27,7 @@ let googleReversedClientId = "com.googleusercontent.apps.130905058858-bnb68ubnn1
 let keychainService = "com.zhian.tothread.ios"
 let keychainAccount = "google_id_token"
 
-class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler {
+class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMessageHandler, WKUIDelegate {
 
     @IBOutlet var webView: WKWebView!
     var safariViewController: SFSafariViewController?
@@ -40,6 +40,7 @@ class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMess
         super.viewDidLoad()
 
         self.webView.navigationDelegate = self
+        self.webView.uiDelegate = self
 
 #if os(iOS)
         self.webView.scrollView.isScrollEnabled = false
@@ -52,6 +53,42 @@ class ViewController: PlatformViewController, WKNavigationDelegate, WKScriptMess
 
         self.webView.loadFileURL(Bundle.main.url(forResource: "Main", withExtension: "html")!, allowingReadAccessTo: Bundle.main.resourceURL!)
     }
+
+#if os(iOS)
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            completionHandler()
+        })
+        present(alert, animated: true)
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+            completionHandler(false)
+        })
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            completionHandler(true)
+        })
+        present(alert, animated: true)
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+        alert.addTextField { textField in
+            textField.text = defaultText
+        }
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+            completionHandler(nil)
+        })
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            let value = alert.textFields?.first?.text
+            completionHandler(value)
+        })
+        present(alert, animated: true)
+    }
+#endif
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 #if os(iOS)

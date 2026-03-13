@@ -33,8 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 let params = parseURLFragment(fragment)
                 if let idToken = params["id_token"] {
                     // Pass the token to the view controller
-                    if let window = self.window,
-                       let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate,
+                    if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate,
                        let navController = sceneDelegate.window?.rootViewController as? UINavigationController,
                        let viewController = navController.viewControllers.first as? ViewController {
                         // Store token and update UI

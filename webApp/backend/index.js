@@ -1,10 +1,14 @@
 import html from "./ui/index.html";
-import { isStaticRequest } from './lib/utils.js';
+import { isStaticRequest, corsPreflight } from './lib/utils.js';
 import * as routes from './lib/routes.js';
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return corsPreflight();
+    }
 
     // 6.1.5: delegate /ui/* requests to the ASSETS binding so they are served
     // directly from the ui folder instead of from inline strings.

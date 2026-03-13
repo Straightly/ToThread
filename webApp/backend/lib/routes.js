@@ -4,7 +4,7 @@ import { parseAuthorizationHeader, verifyGoogleIdToken, isAllowed, getAllowlist,
 import { getTodos, saveTodos } from './todos.js';
 import { listThreads, getThreadContent, appendThreadEntry } from './threads.js';
 import { giteaRequest, buildGiteaContentsUrl, ensureTrailingSlash, generateWritingFileName, generateWritingMarkdown, base64EncodeUtf8 } from './gitea.js';
-import { jsonResponse } from './utils.js';
+import { jsonResponse, withCors } from './utils.js';
 import { loadPlan, savePlan, addTask, replaceTask, deleteTask, getTask } from './plan.js';
 
 export async function handleHealth() {
@@ -169,10 +169,12 @@ export async function handleGetPlan(request, env) {
     if (!plan.exists) {
       return jsonResponse({ error: "not_found", message: "Plan file not found" }, 404);
     }
-    return new Response(plan.raw, {
-      status: 200,
-      headers: { "content-type": "text/yaml; charset=utf-8" },
-    });
+    return withCors(
+      new Response(plan.raw, {
+        status: 200,
+        headers: { "content-type": "text/yaml; charset=utf-8" },
+      })
+    );
   } catch (err) {
     return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
   }
