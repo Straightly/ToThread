@@ -10,18 +10,10 @@
     <script src="../Script.js" defer></script>
 </head>
 <body>
-    <!-- Extension Instructions Section -->
-    <div id="extension-section">
-        <img src="../Icon.png" width="128" height="128" alt="ToThreadCapture Icon">
-        <p class="platform-ios">You can turn on ToThreadCapture's Safari extension in Settings.</p>
-        <p class="platform-mac state-unknown">You can turn on ToThreadCapture's extension in Safari Extensions preferences.</p>
-        <p class="platform-mac state-on">ToThreadCapture's extension is currently on. You can turn it off in Safari Extensions preferences.</p>
-        <p class="platform-mac state-off">ToThreadCapture's extension is currently off. You can turn it on in Safari Extensions preferences.</p>
-        <button class="platform-mac open-preferences">Quit and Open Safari Extensions Preferences…</button>
-    </div>
+    <!-- Extension Instructions Section (removed for now) -->
 
     <!-- Plan Viewer Section (iOS only) -->
-    <div id="plan-section" class="platform-ios" style="display: none; padding: 20px;">
+    <div id="plan-section" class="platform-ios" style="display: none; padding: 12px 20px 20px 20px;">
         <div id="plan-login" style="text-align: center;">
             <h2>Project Plan</h2>
             <p>Sign in with Google to view and manage your project plan.</p>
@@ -47,7 +39,7 @@
             </div>
 
             <label style="margin-bottom: 10px; display: block;">
-                <input type="checkbox" id="show-finished-toggle" checked>
+                <input type="checkbox" id="show-finished-toggle">
                 Show finished tasks
             </label>
 

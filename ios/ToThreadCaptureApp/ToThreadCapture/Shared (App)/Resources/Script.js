@@ -32,14 +32,18 @@ if (openPreferencesBtn) {
 
 let authToken = null;
 let currentPlanData = null;
-let showFinishedTasks = true;
+let showFinishedTasks = false;
 const BACKEND_BASE = "https://tothread-webapp.zhian-job.workers.dev";
 const planIndex = new Map();
 let navigationStack = [];
-const DEBUG = false;
+const DEBUG = true;
 let emptyLoadRetry = false;
 let lastLoadState = "idle"; // idle | loading | loaded | error
 let lastLoadMessage = "";
+let refreshTimeoutId = null;
+let currentLoadController = null;
+let loadCounter = 0;
+let currentLoadLabel = "Loading...";
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
@@ -55,6 +59,8 @@ window.addEventListener("DOMContentLoaded", () => {
         retrieveStoredToken();
     }
     wirePlanUiHandlers();
+    const showFinished = document.getElementById("show-finished-toggle");
+    if (showFinished) showFinished.checked = false;
     updateUIForAuth();
 });
 
@@ -116,7 +122,7 @@ function onTokenCleared() {
 
 // ===== Plan API Calls =====
 
-async function apiCall(endpoint, method = "GET", body = null) {
+async function apiCall(endpoint, method = "GET", body = null, signal = null, cacheBust = false) {
     if (!authToken) {
         throw new Error("Not authenticated");
     }
@@ -133,7 +139,19 @@ async function apiCall(endpoint, method = "GET", body = null) {
         options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${BACKEND_BASE}${endpoint}`, options);
+    if (signal) {
+        options.signal = signal;
+    }
+
+    let url = `${BACKEND_BASE}${endpoint}`;
+    if (cacheBust && method === "GET") {
+        const sep = url.includes("?") ? "&" : "?";
+        url = `${url}${sep}t=${Date.now()}`;
+        options.cache = "no-store";
+        options.headers["Cache-Control"] = "no-store";
+    }
+
+    const response = await fetch(url, options);
 
     if (response.status === 401 || response.status === 403) {
         logout();
@@ -154,6 +172,8 @@ async function apiCall(endpoint, method = "GET", body = null) {
 
 async function loadPlanData() {
     if (!authToken) {
+        setLoadState("error", "Not authenticated");
+        renderCurrentLevel();
         return;
     }
 
@@ -167,13 +187,27 @@ async function loadPlanData() {
     }
 
     try {
-        lastLoadState = "loading";
-        lastLoadMessage = "";
+        setLoadState("loading", currentLoadLabel);
         errorDiv.style.display = "none";
         loading.style.display = "block";
         container.innerHTML = "";
 
-        const raw = await promiseWithTimeout(apiCall("/plan"), 6000, "Load timed out");
+        if (currentLoadController) {
+            currentLoadController.abort();
+        }
+        const controller = new AbortController();
+        currentLoadController = controller;
+        const loadId = ++loadCounter;
+
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, 6000);
+
+        const raw = await apiCall("/plan", "GET", null, controller.signal, currentLoadLabel === "Refreshing...");
+        clearTimeout(timeoutId);
+        if (loadId !== loadCounter) {
+            return;
+        }
         const data = parseYaml(raw);
         currentPlanData = data;
         planIndex.clear();
@@ -182,11 +216,10 @@ async function loadPlanData() {
         indexTasks(rootTasks);
         const hasTasksMarker = /(^|\n)(tasks|sections):/m.test(raw);
         if (!rootTasks.length && hasTasksMarker) {
-            lastLoadState = "error";
-            lastLoadMessage = "Load incomplete. Tap Refresh.";
+            setLoadState("error", "Load incomplete. Tap Refresh.");
             showError(lastLoadMessage);
         } else {
-            lastLoadState = "loaded";
+            setLoadState("loaded", "");
             renderCurrentLevel();
         }
         updateLastSyncTime();
@@ -199,13 +232,27 @@ async function loadPlanData() {
         }
     } catch (error) {
         if (error.message === "Authentication failed") {
+            setLoadState("error", "Authentication failed");
+            renderCurrentLevel();
             return;
         }
-        lastLoadState = "error";
-        lastLoadMessage = error.message || "Load failed";
+        if (error.name === "AbortError") {
+            setLoadState("error", "Load canceled. Tap Refresh.");
+            renderCurrentLevel();
+            return;
+        }
+        setLoadState("error", error.message || "Load failed");
         showError(error.message);
     } finally {
         loading.style.display = "none";
+        if (currentLoadController) {
+            currentLoadController = null;
+        }
+        if (lastLoadState === "loading") {
+            setLoadState("error", "Load did not complete. Tap Refresh.");
+            renderCurrentLevel();
+        }
+        currentLoadLabel = "Loading...";
     }
 }
 
@@ -312,11 +359,19 @@ function renderCurrentLevel() {
 
 async function markTaskDone(taskId) {
     try {
+        clearErrorMessage();
         const task = planIndex.get(taskId);
         if (!task) throw new Error("Task not found locally");
         const next = { ...task, status: "Done" };
-        await apiCall(`/plan/tasks/${taskId}`, "PUT", { task: next });
-        loadPlanData();
+        const result = await apiCall(`/plan/tasks/${taskId}`, "PUT", { task: next });
+        if (result && result.task) {
+            updateTaskInPlan(result.task);
+            renderCurrentLevel();
+            updateLastSyncTime();
+            loadPlanData();
+        } else {
+            loadPlanData();
+        }
     } catch (error) {
         showError(`Failed to mark task done: ${error.message}`);
     }
@@ -331,6 +386,7 @@ async function addTopLevelTask() {
     if (!title) return;
 
     try {
+        clearErrorMessage();
         const currentParentId = navigationStack.length ? navigationStack[navigationStack.length - 1] : null;
         const result = await apiCall("/plan/tasks", "POST", { parentId: currentParentId, task: { title, status: "Pending" } });
         if (result && result.task) {
@@ -350,6 +406,7 @@ async function addSubtask(parentId) {
     if (!title) return;
 
     try {
+        clearErrorMessage();
         const result = await apiCall("/plan/tasks", "POST", { parentId, task: { title, status: "Pending" } });
         if (result && result.task) {
             insertTaskIntoPlan(parentId, result.task);
@@ -368,14 +425,26 @@ async function deleteTask(taskId) {
     if (!confirmed) return;
 
     try {
-        await apiCall(`/plan/tasks/${taskId}`, "DELETE");
-        loadPlanData();
+        clearErrorMessage();
+        const result = await apiCall(`/plan/tasks/${taskId}`, "DELETE");
+        if (result && result.task) {
+            removeTaskFromPlan(taskId);
+            renderCurrentLevel();
+            updateLastSyncTime();
+            loadPlanData();
+        } else {
+            loadPlanData();
+        }
     } catch (error) {
         showError(`Failed to delete task: ${error.message}`);
     }
 }
 
 async function refreshPlan() {
+    clearErrorMessage();
+    currentLoadLabel = "Refreshing...";
+    updateLastSyncTime();
+    renderCurrentLevel();
     loadPlanData();
 }
 
@@ -410,7 +479,6 @@ function promiseWithTimeout(promise, ms, message) {
 }
 
 function updatePlanStatus(rootTasks, data, raw) {
-    if (!DEBUG) return;
     const statusEl = document.getElementById("plan-status");
     if (!statusEl) return;
     if (!Array.isArray(rootTasks)) {
@@ -441,6 +509,42 @@ function showError(message) {
         if (statusEl) {
             statusEl.textContent = message;
         }
+    }
+}
+
+function clearErrorMessage() {
+    const errorDiv = document.getElementById("plan-error");
+    const errorMsg = document.getElementById("error-message");
+    if (errorMsg) {
+        errorMsg.textContent = "";
+    }
+    if (errorDiv) {
+        errorDiv.style.display = "none";
+    }
+    const loading = document.getElementById("loading");
+    if (loading && lastLoadState !== "loading") {
+        loading.textContent = "Loading tasks...";
+    }
+}
+
+function setPlanStatus(message) {
+    const statusEl = document.getElementById("plan-status");
+    if (statusEl) {
+        statusEl.textContent = message;
+    }
+}
+
+function setLoadState(state, message) {
+    lastLoadState = state;
+    lastLoadMessage = message || "";
+    if (state === "loading") {
+        setPlanStatus(lastLoadMessage || "Loading...");
+    } else if (state === "loaded") {
+        setPlanStatus("Loaded");
+    } else if (state === "error") {
+        setPlanStatus(lastLoadMessage || "Load failed");
+    } else {
+        setPlanStatus("");
     }
 }
 
@@ -520,6 +624,42 @@ function insertTaskIntoPlan(parentId, task) {
     }
     if (!Array.isArray(parent.tasks)) parent.tasks = [];
     parent.tasks.push(task);
+}
+
+function removeTaskFromPlan(taskId) {
+    if (!taskId || !currentPlanData) return;
+    const root = getRootTaskList();
+
+    const removeFromList = (list) => {
+        if (!Array.isArray(list)) return false;
+        const index = list.findIndex((item) => item && item.id === taskId);
+        if (index >= 0) {
+            list.splice(index, 1);
+            return true;
+        }
+        for (const item of list) {
+            const children = Array.isArray(item?.tasks)
+                ? item.tasks
+                : (Array.isArray(item?.subtasks) ? item.subtasks : []);
+            if (removeFromList(children)) return true;
+        }
+        return false;
+    };
+
+    removeFromList(root);
+    planIndex.delete(taskId);
+}
+
+function updateTaskInPlan(task) {
+    if (!task || !task.id) return;
+    const existing = planIndex.get(task.id);
+    if (existing) {
+        Object.keys(existing).forEach((key) => {
+            if (!(key in task)) delete existing[key];
+        });
+        Object.assign(existing, task);
+    }
+    planIndex.set(task.id, task);
 }
 
 function getTasksAtCurrentLevel() {

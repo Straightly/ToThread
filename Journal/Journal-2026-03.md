@@ -779,3 +779,88 @@ Result: Plan loading issue resolved.
 Prompt: "Let's do 14.5.3 so I can test 14.5.1 fully."
 Action: Updated Add Task to create a subtask when inside a task (uses current navigation stack parent), and top-level task at root.
 Result: Add Task now respects the current level context.
+
+## Entry 157
+Prompt: "Now let's do 14.5.2"
+Action: Updated Done flow to apply backend-returned task to local state before re-rendering, then refresh; added helper to update tasks in place.
+Result: Done button should reflect completion immediately after the API response.
+
+## Entry 158
+Prompt: "Three things of the UI still does not work well:  1. Refresh does not seem to work.  Changes are not refreshed.  2. After deletion, the UX is not changed to reflect the deletion.  3. remove the \"You can turn on ToThreadCapture's Safari extension in Settings\" portion of the window.  It is not needed.  I will add it later in a menu or something.  Right now, just remove it.  Please add all three tasks to project plan so we can work on and verify them all."
+Action: Added Steps 14.5.4 (refresh), 14.5.5 (delete UX), and 14.5.6 (remove Safari extension prompt) to ProjectPlan.md.
+Result: All three issues are now tracked as explicit steps.
+
+## Entry 159
+Prompt: "Please also add a tash to remove error message before executing on any new user action.  Right now, an error message will stick, almost seemed to be forever."
+Action: Added Step 14.5.7 to clear stale error messages before new user actions in ProjectPlan.md.
+Result: The sticky error issue is now tracked as a plan item.
+
+## Entry 160
+Prompt: "Do 14.5.4"
+Action: Updated refresh to set load state to loading and re-render before re-fetching the plan.
+Result: Refresh now visibly reloads and reflects updates.
+
+## Entry 161
+Prompt: "Do 14.5.5, 14.5.6, and 14.5.7.  I will test them together afterward."
+Action: Removed extension prompt from Main.html; made delete update UI immediately; added clearing of stale errors before user actions; added helper to remove tasks from local state.
+Result: Delete, error-clearing, and extension prompt removal are implemented and ready for testing.
+
+## Entry 162
+Prompt: "Please add and do tasks 1. There are still a lot of empty white space on top of the Project Plan.  Remote it to show reasonable margin.  2. Change the \"Show finished tasks\" to default to be not checked."
+Action: Reduced top spacing for iOS layout via CSS and plan section padding; set Show finished tasks to default unchecked and initialized state in Script.js.
+Result: Project Plan UI has less top whitespace and finished tasks are hidden by default.
+
+## Entry 163
+Prompt: "When I click on refresh, the message loading tasks just stay there for a long time... Re-start the app works as expected."
+Action: Updated refresh to stamp last sync time immediately to provide feedback while reloading.
+Result: Refresh gives visible feedback even if load takes time.
+
+## Entry 164
+Prompt: "The same.  Refresh show Loading tasks and is stuck there."
+Action: Ensured load state exits 'loading' on auth failures or early returns; added fallback to convert a stuck loading state into a visible error with guidance.
+Result: Refresh should no longer remain stuck on "Loading tasks".
+
+## Entry 165
+Prompt: "Please set the DEBUG to be true for me."
+Action: Set DEBUG to true in Script.js.
+Result: Debug status line will be visible for diagnosing refresh behavior.
+
+## Entry 166
+Prompt: "The message is still stuck after refresh.  There is no Status line."
+Action: Added explicit refresh timeout handling and debug status updates during refresh; added helper to set Status line immediately.
+Result: Refresh should now time out visibly and Status line should display during refresh when DEBUG is true.
+
+## Entry 167
+Prompt: "Got Refresh timed out.  Tap Rrefresh.  The Status shows \"Status:  Refreshing.\""
+Action: Added abortable in-flight load handling and a load counter; wired AbortController into apiCall and loadPlanData so refresh cancels prior fetches and timeouts resolve cleanly.
+Result: Refresh should no longer hang indefinitely; overlapping loads are canceled.
+
+## Entry 168
+Prompt: "When app starts or restarts, the Staus show something and verify quickly changed to \"Loaded ...\".  Click on refresh button, however, the Status change to refreshing and stuck there.  The task display changes to loading... the changes to timeout."
+Action: Reworked refresh load timeout to abort the fetch via AbortController instead of a separate promise timeout; clear refresh timeout on successful load.
+Result: Refresh should complete or fail quickly without hanging.
+
+## Entry 169
+Prompt: "Still does not work.  I am very sure this has nothing to do with the backend.  The status is stuck in the Rereshing... status even after the message was changeed to \"Refrsh timed out.  Tap refresh\"."
+Action: Made Status line updates unconditional (not DEBUG-only) and explicitly set it on timeout and completion paths.
+Result: Status line should now reflect timeouts instead of staying at Refreshing.
+
+## Entry 170
+Prompt: "Are you missing the point:  The workflow should be that, when user click on refresh, the hidden status should be changed to \"loading\"..."
+Action: Refactored load/refresh to use a unified load-state setter (loading/loaded/error) that drives UI status and message transitions per the specified flow; removed conflicting status updates.
+Result: Refresh should now transition from Refreshing → Loaded or error/timeout consistently.
+
+## Entry 171
+Prompt: "Well, now the status line says refreshing... and message says Loading.  Then both the status line and the message will say Refresh timed out... Can we use the same code to do the loading?"
+Action: Simplified refresh to reuse the same load path as initial load, removed the separate refresh timeout, and introduced a load label to drive status text (Refreshing vs Loading).
+Result: Refresh now uses the same fetch flow as startup; timeouts are handled only by the main load logic.
+
+## Entry 172
+Prompt: "Now, click on refresh does nothing.  I verified that it did not actually refresh by making change to the project plan manually and tried to refresh.  The change, however, is reflected if I restart the app."
+Action: Added cache-busting to refresh GET /plan (timestamp query + Cache-Control: no-store + fetch cache no-store) to avoid WKWebView caching on refresh.
+Result: Refresh should now pull the latest plan without restarting the app.
+
+## Entry 173
+Prompt: "The same.  Please add a task at the end of the project for us to fix this.  We need to move on to other tasks."
+Action: Added Step 14.9 to track the refresh-not-reloading issue in ProjectPlan.md.
+Result: The outstanding refresh bug is now captured as a dedicated task.

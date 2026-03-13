@@ -652,6 +652,22 @@ This backend will eventually replace the GitHub-API-based storage model used by 
     - Any backend action is gated by token; failures trigger login flow.
     - On error, keep local edits minimal and prompt user to retry.
 
+- [ ] **Step 14.5.4 — Refresh should reload current level**
+  - Refresh must re-fetch from backend and update the current view.
+  - Verify changes appear immediately after refresh.
+
+- [ ] **Step 14.5.5 — Deletion should update UI**
+  - After deleting a task, the list should update immediately.
+  - Verify the deleted task disappears without restart.
+
+- [ ] **Step 14.5.6 — Remove Safari extension prompt from main view**
+  - Remove “You can turn on ToThreadCapture's Safari extension in Settings.” from the app screen.
+  - Later reintroduce via a menu or settings area.
+
+- [ ] **Step 14.5.7 — Clear stale error messages**
+  - Before any new user action (refresh/add/delete/done), clear any existing error message.
+  - Avoid leaving errors visible after successful actions.
+
 - [ ] **Step 14.6 — Task details screen (terminal view)**
   - Separate Details screen (no subtask list visible here).
   - Fields: title, description, results, status.
@@ -666,6 +682,11 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Load plan on iPhone.
   - Edit a section and save.
   - Verify changes in repo and Git history.
+
+- [ ] **Step 14.9 — Refresh does not reload in‑app**
+  - Refresh button sometimes does not pull latest plan until app restart.
+  - Investigate WKWebView caching or request revalidation.
+  - Fix so refresh reliably re-fetches and updates view.
 
 **Exit criteria:**
 - `ProjectPlan.md` can be loaded, edited, and saved from iPhone.
