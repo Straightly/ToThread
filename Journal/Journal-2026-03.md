@@ -674,3 +674,103 @@ Result: Added tasks should now appear instantly after creation.
 Prompt: "It worked.  I was able to add tasks. login and logout worked to show the tasks and ask me to login.  Please update the projectplan to mark completed tasks.  Also, I did not see the a subtask to move into a task to see its subtasks.  Please add a step to implement that."
 Action: Marked Step 14.5 as completed and added Step 14.5.1 for drill‑down navigation into subtasks in ProjectPlan.md.
 Result: Plan reflects current completion and the missing drill‑down requirement is captured as a new step.
+
+## Entry 136
+Prompt: "Yes.  Please do 14.5.1 now."
+Action: Added explicit "Open" button for tasks with children and only enabled row tap navigation when a task has subtasks.
+Result: Drill‑down navigation into subtasks is now discoverable and should work reliably.
+
+## Entry 137
+Prompt: "It worked.  But please change it so:  1. Change the + sub button to -> Sub if there is already subtasks and remove the Open button as it is redudant.  2 remove the detail button so when one click on the title, it will show the details."
+Action: Updated task row UI: title click opens Details, removed Details and Open buttons, and made Sub button label/contextual behavior (→ Sub to drill down when subtasks exist; + Sub to add when none).
+Result: Drill‑down is via the Sub button and Details is opened by tapping the title.
+
+## Entry 138
+Prompt: "Changes are good.  Please remove delete button and make left swipe to be delete.  Actually, remove the +sub and ->sub too, and use swipe right for that.  ie. swipe right will either display the subs or add sub if none exists."
+Action: Removed explicit Delete/Sub buttons and added swipe handlers: swipe left deletes, swipe right opens subtasks or adds a subtask when none exist.
+Result: Task row actions are now gesture-based per your spec.
+
+## Entry 139
+Prompt: "I also notice the Done button is gone.  Please add that back."
+Action: Ensured the Done button remains rendered when a task has no unfinished subtasks and is not Continuous.
+Result: Done button is restored.
+
+## Entry 140
+Prompt: "I want to keep the lable showing the count of subtasks with red showing there are unfinished tasks and blue meaning all subtasks are finished."
+Action: Color-coded the subtask count badge: red when unfinished subtasks exist, blue when all subtasks are done.
+Result: Subtask count label now reflects completion status by color.
+
+## Entry 141
+Prompt: "Two issues still:  Mark a task done says : Failed to mark task done:  Authentication failed.  Also, nothing seemed to have been saved.  Restart the app everything is gone."
+Action: Updated plan API handlers to return proper server_error vs unauthorized using isAuthError, so backend save failures (e.g., Gitea errors) are no longer masked as auth failures.
+Result: iOS app will now surface accurate errors if save/commit fails; helps diagnose why tasks disappear after restart.
+
+## Entry 142
+Prompt: "I see many tasks commited to ProjectPlan.yaml.  But when the app start, it is not showing anything."
+Action: Added title fallback to show task.id when title is missing and added support for `subtasks` as an alternate children key.
+Result: Tasks without titles should now render, and nested tasks under `subtasks` will be visible.
+
+## Entry 143
+Prompt: "Still got \"No tasks at tis level.\""
+Action: Added robust root-task extraction to handle malformed/parsed section objects, and ensured root lists are derived even if `sections`/`tasks` are not arrays.
+Result: Tasks should now render even when YAML parsing yields an object for sections.
+
+## Entry 144
+Prompt: "Should I edit ProjectPlan.yaml to make it what we want ?"
+Action: Advised on normalizing ProjectPlan.yaml structure to a consistent tasks array and offered to clean it up to match the expected schema.
+Result: User has guidance on whether and how to edit the plan file for consistent UI rendering.
+
+## Entry 145
+Prompt: "OK.  I update and checked in the seed yaml file.  rebuild the app but still \"No tasks at this level.\""
+Action: Added a plan status line showing loaded root task count and top-level keys to diagnose why root tasks are empty.
+Result: UI will now display whether tasks were loaded and which top-level keys are present.
+
+## Entry 146
+Prompt: "The titles say:  Level:  Root.  Last sync: 9:32:07, Status:  Loaded 0 root tasks (keys: version)."
+Action: Added raw response length and preview to the plan status line to debug whether /plan is returning the full YAML.
+Result: Next run will show raw length and first lines of the /plan response to pinpoint truncation.
+
+## Entry 147
+Prompt: "rawLen 227 match my seed yaml file size."
+Action: Replaced the iOS-side YAML parser with the more robust version used in the backend (inline arrays + array lookahead) to ensure all top-level keys parse.
+Result: The app should now parse `project`, `statuses`, and `tasks` correctly and show tasks.
+
+## Entry 148
+Prompt: "Status:  loaded 0 root tasks (keys: version: rawLen: 227; preview: version: 1 | project: "...")"
+Action: Fixed the iOS YAML parser regex literals that were double-escaped (`/\\r?\\n/` and `/\\d/`), which caused the parser to treat the whole file as one line.
+Result: YAML should now parse fully and tasks should appear.
+
+## Entry 149
+Prompt: "The initial loading worked.  Add task also worked. "
+Action: Acknowledged successful load and add-task flow; no code changes required.
+Result: Plan UI is now functional for loading and adding tasks.
+
+## Entry 150
+Prompt: "Do not remove the debug lines.  Please add a hidden flag DEBUG and set it to false and hid all the debug lines behind it so we can turn them on again if needed."
+Action: Added `DEBUG = false` flag and gated debug status updates behind it.
+Result: Debug lines are hidden by default but can be re-enabled by setting DEBUG to true.
+
+## Entry 151
+Prompt: "Still two issues.  1.  When I click on Done, nothing happened.  The task seemed to be marked correctly. As later load show them as done.  But not when I clicked on them.  2. when I was in a task, I was expecting add task will add task as a subtask to the current task.  Currently the task is added as top level task.  Please do not work on these yet.  Add them as steps in the project plan so we do not forget to work on them later."
+Action: Added Step 14.5.2 for immediate Done UI update and Step 14.5.3 for adding tasks at current level in ProjectPlan.md.
+Result: The two issues are now tracked as explicit steps.
+
+## Entry 152
+Prompt: "yes."
+Action: Updated Step 14.5.2 wording to specify updating UI after backend response instead of optimistic update.
+Result: Plan now reflects backend-confirmed UI update approach.
+
+## Entry 153
+Prompt: "The loading of the app still have problems.  Right now, initial loading is not working saying no tasks at this level.  I suspect this may be related to that initial loading take longer than expected.  Even when the tasks were not showing, I was able to add a task which was saved.  So it is not a connectivity issue."
+Action: Added a one-time retry if root tasks are empty but the raw YAML contains `tasks:` or `sections:` to handle initial load timing issues.
+Result: The app will re-attempt loading shortly after an empty first render.
+
+## Entry 154
+Prompt: "Can it be changed so that we show error or timeout of the loading, rather than reporting incorrect information?  Adjust the timeout will be good too.  Correctly, it is simply wrong!"
+Action: Added explicit load states, 6s timeout for /plan, and replaced the misleading "No tasks" message with a clear error/timeout when load is incomplete.
+Result: The UI now reports loading failures accurately instead of showing empty results.
+
+## Entry 155
+Prompt: "It is working now. "
+Action: Acknowledged successful behavior after load state/timeout changes.
+Result: Plan loading issue resolved.

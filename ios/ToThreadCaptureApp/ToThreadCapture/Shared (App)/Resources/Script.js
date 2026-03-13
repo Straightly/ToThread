@@ -36,6 +36,10 @@ let showFinishedTasks = true;
 const BACKEND_BASE = "https://tothread-webapp.zhian-job.workers.dev";
 const planIndex = new Map();
 let navigationStack = [];
+const DEBUG = false;
+let emptyLoadRetry = false;
+let lastLoadState = "idle"; // idle | loading | loaded | error
+let lastLoadMessage = "";
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
@@ -163,23 +167,42 @@ async function loadPlanData() {
     }
 
     try {
+        lastLoadState = "loading";
+        lastLoadMessage = "";
         errorDiv.style.display = "none";
         loading.style.display = "block";
         container.innerHTML = "";
 
-        const raw = await apiCall("/plan");
+        const raw = await promiseWithTimeout(apiCall("/plan"), 6000, "Load timed out");
         const data = parseYaml(raw);
         currentPlanData = data;
         planIndex.clear();
         navigationStack = [];
-        const rootTasks = data.sections || data.tasks || [];
+        const rootTasks = getRootTasksFromData(data);
         indexTasks(rootTasks);
-        renderCurrentLevel();
+        const hasTasksMarker = /(^|\n)(tasks|sections):/m.test(raw);
+        if (!rootTasks.length && hasTasksMarker) {
+            lastLoadState = "error";
+            lastLoadMessage = "Load incomplete. Tap Refresh.";
+            showError(lastLoadMessage);
+        } else {
+            lastLoadState = "loaded";
+            renderCurrentLevel();
+        }
         updateLastSyncTime();
+        updatePlanStatus(rootTasks, data, raw);
+        if (!rootTasks.length && !emptyLoadRetry && /(^|\\n)(tasks|sections):/m.test(raw)) {
+            emptyLoadRetry = true;
+            setTimeout(() => {
+                loadPlanData();
+            }, 400);
+        }
     } catch (error) {
         if (error.message === "Authentication failed") {
             return;
         }
+        lastLoadState = "error";
+        lastLoadMessage = error.message || "Load failed";
         showError(error.message);
     } finally {
         loading.style.display = "none";
@@ -204,6 +227,22 @@ function renderCurrentLevel() {
         levelLabel.textContent = parent ? parent.title : "Root";
     }
 
+    if (lastLoadState === "loading") {
+        const loadingRow = document.createElement("div");
+        loadingRow.style.cssText = "padding: 12px; color: #777; text-align: center;";
+        loadingRow.textContent = "Loading tasks...";
+        taskList.appendChild(loadingRow);
+        return;
+    }
+
+    if (lastLoadState === "error" && lastLoadMessage) {
+        const errorRow = document.createElement("div");
+        errorRow.style.cssText = "padding: 12px; color: #b42318; text-align: center;";
+        errorRow.textContent = lastLoadMessage;
+        taskList.appendChild(errorRow);
+        return;
+    }
+
     if (!tasks.length) {
         const empty = document.createElement("div");
         empty.style.cssText = "padding: 12px; color: #777; text-align: center;";
@@ -226,21 +265,27 @@ function renderCurrentLevel() {
         `;
 
         const titleSpan = document.createElement("span");
-        titleSpan.textContent = task.title || "(Untitled)";
+        titleSpan.textContent = task.title || task.name || task.id || "(Untitled)";
         titleSpan.style.flex = "1";
         if (isDone(task)) {
             titleSpan.style.textDecoration = "line-through";
             titleSpan.style.color = "#999";
         }
+        titleSpan.style.cursor = "pointer";
+        titleSpan.addEventListener("click", (event) => {
+            event.stopPropagation();
+            showTaskDetails(task);
+        });
         row.appendChild(titleSpan);
 
-        const children = Array.isArray(task.tasks) ? task.tasks : [];
+        const children = Array.isArray(task.tasks) ? task.tasks : (Array.isArray(task.subtasks) ? task.subtasks : []);
         const childCount = children.length;
         const unfinishedCount = children.filter(t => !isDone(t)).length;
         if (childCount > 0) {
             const childBadge = document.createElement("span");
             childBadge.textContent = `${unfinishedCount}/${childCount}`;
-            childBadge.style.cssText = "font-size: 12px; background: #f0f0f0; padding: 2px 6px; border-radius: 3px;";
+            const badgeColor = unfinishedCount > 0 ? "#b42318" : "#175cd3";
+            childBadge.style.cssText = `font-size: 12px; background: #f0f0f0; padding: 2px 6px; border-radius: 3px; color: ${badgeColor};`;
             row.appendChild(childBadge);
         }
 
@@ -255,35 +300,10 @@ function renderCurrentLevel() {
             row.appendChild(doneBtn);
         }
 
-        const addSubBtn = document.createElement("button");
-        addSubBtn.textContent = "+ Sub";
-        addSubBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #eee; border: 1px solid #ccc; border-radius: 3px; cursor: pointer;";
-        addSubBtn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            addSubtask(task.id);
-        });
-        row.appendChild(addSubBtn);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #f8d7da; color: #8a1c1c; border: 1px solid #f5c2c7; border-radius: 3px; cursor: pointer;";
-        deleteBtn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            deleteTask(task.id);
-        });
-        row.appendChild(deleteBtn);
-
-        const detailsBtn = document.createElement("button");
-        detailsBtn.textContent = "Details";
-        detailsBtn.style.cssText = "padding: 4px 8px; font-size: 12px; background: #2196F3; color: white; border: none; border-radius: 3px; cursor: pointer;";
-        detailsBtn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            showTaskDetails(task);
-        });
-        row.appendChild(detailsBtn);
+        attachSwipeHandlers(row, task, childCount);
 
         row.addEventListener("click", () => {
-            navigateToTask(task);
+            // Row click is reserved for future selection behavior.
         });
 
         taskList.appendChild(row);
@@ -372,6 +392,37 @@ function updateLastSyncTime() {
     document.getElementById("last-sync").textContent = timeStr;
 }
 
+function promiseWithTimeout(promise, ms, message) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error(message));
+        }, ms);
+        promise
+            .then((value) => {
+                clearTimeout(timer);
+                resolve(value);
+            })
+            .catch((error) => {
+                clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
+
+function updatePlanStatus(rootTasks, data, raw) {
+    if (!DEBUG) return;
+    const statusEl = document.getElementById("plan-status");
+    if (!statusEl) return;
+    if (!Array.isArray(rootTasks)) {
+        statusEl.textContent = "No root task list found";
+        return;
+    }
+    const keys = data && typeof data === "object" ? Object.keys(data) : [];
+    const rawPreview = typeof raw === "string" ? raw.split(/\r?\n/).slice(0, 2).join(" | ") : "";
+    const rawLen = typeof raw === "string" ? raw.length : 0;
+    statusEl.textContent = `Loaded ${rootTasks.length} root tasks (keys: ${keys.join(", ")}; rawLen: ${rawLen}; preview: ${rawPreview})`;
+}
+
 function showError(message) {
     const errorDiv = document.getElementById("plan-error");
     const errorMsg = document.getElementById("error-message");
@@ -385,24 +436,70 @@ function showError(message) {
     if (loading) {
         loading.textContent = message;
     }
+    if (DEBUG) {
+        const statusEl = document.getElementById("plan-status");
+        if (statusEl) {
+            statusEl.textContent = message;
+        }
+    }
 }
 
 function indexTasks(tasks) {
     for (const task of tasks) {
         if (!task || !task.id) continue;
         planIndex.set(task.id, task);
-        if (Array.isArray(task.tasks) && task.tasks.length) {
-            indexTasks(task.tasks);
+        const children = Array.isArray(task.tasks) ? task.tasks : (Array.isArray(task.subtasks) ? task.subtasks : []);
+        if (children.length) {
+            indexTasks(children);
         }
     }
+}
+
+function attachSwipeHandlers(row, task, childCount) {
+    let startX = 0;
+    let startY = 0;
+    let handled = false;
+    const threshold = 40;
+
+    row.addEventListener("touchstart", (event) => {
+        if (!event.touches || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        handled = false;
+    }, { passive: true });
+
+    row.addEventListener("touchend", (event) => {
+        if (handled || !event.changedTouches || event.changedTouches.length !== 1) return;
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+        if (Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy)) {
+            return;
+        }
+        handled = true;
+        if (dx > 0) {
+            // Swipe right: open subtasks if any, otherwise add a subtask.
+            if (childCount > 0) {
+                navigateToTask(task);
+            } else {
+                addSubtask(task.id);
+            }
+        } else {
+            // Swipe left: delete task.
+            deleteTask(task.id);
+        }
+    }, { passive: true });
 }
 
 function getRootTaskList() {
     if (!currentPlanData || typeof currentPlanData !== "object") {
         currentPlanData = {};
     }
+    const root = getRootTasksFromData(currentPlanData);
     if (Array.isArray(currentPlanData.sections)) return currentPlanData.sections;
-    if (!Array.isArray(currentPlanData.tasks)) currentPlanData.tasks = [];
+    if (Array.isArray(currentPlanData.tasks)) return currentPlanData.tasks;
+    currentPlanData.tasks = root;
     return currentPlanData.tasks;
 }
 
@@ -426,20 +523,47 @@ function insertTaskIntoPlan(parentId, task) {
 }
 
 function getTasksAtCurrentLevel() {
-    const rootTasks = currentPlanData?.sections || currentPlanData?.tasks || [];
+    const rootTasks = getRootTasksFromData(currentPlanData);
     if (!navigationStack.length) {
-        return { tasks: rootTasks, parent: null };
+        return { tasks: Array.isArray(rootTasks) ? rootTasks : [], parent: null };
     }
 
-    let tasks = rootTasks;
+    let tasks = Array.isArray(rootTasks) ? rootTasks : [];
     let parent = null;
 
     for (const taskId of navigationStack) {
         parent = tasks.find(t => t && t.id === taskId) || planIndex.get(taskId);
-        tasks = Array.isArray(parent?.tasks) ? parent.tasks : [];
+        tasks = Array.isArray(parent?.tasks)
+            ? parent.tasks
+            : (Array.isArray(parent?.subtasks) ? parent.subtasks : []);
     }
 
     return { tasks, parent };
+}
+
+function isTaskLike(value) {
+    if (!value || typeof value !== "object") return false;
+    return (
+        "title" in value ||
+        "id" in value ||
+        "status" in value ||
+        "tasks" in value ||
+        "subtasks" in value
+    );
+}
+
+function getRootTasksFromData(data) {
+    if (!data || typeof data !== "object") return [];
+    const candidates = ["sections", "tasks"];
+    for (const key of candidates) {
+        const value = data[key];
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === "object") {
+            const values = Object.values(value).filter(isTaskLike);
+            if (values.length) return values;
+        }
+    }
+    return [];
 }
 
 function navigateToTask(task) {
@@ -462,8 +586,22 @@ function isContinuous(task) {
     return String(task?.status || "").toLowerCase() === "continuous";
 }
 
+function parseInlineArray(value) {
+    const inner = value.trim().slice(1, -1);
+    if (!inner.trim()) return [];
+    return inner.split(",").map((part) => parseScalar(part));
+}
+
+function nextNonEmptyLine(lines, startIndex) {
+    for (let i = startIndex; i < lines.length; i += 1) {
+        const line = lines[i];
+        if (line && line.trim() && !line.trim().startsWith("#")) return line;
+    }
+    return null;
+}
+
 function parseYaml(text) {
-    const lines = text.split(/\\r?\\n/);
+    const lines = text.split(/\r?\n/);
     const root = {};
     const stack = [{ indent: -1, container: root, type: "object" }];
 
@@ -500,7 +638,9 @@ function parseYaml(text) {
                 const value = rest.join(":").trim();
                 const obj = {};
                 if (value) {
-                    obj[key] = parseScalar(value);
+                    obj[key] = value.startsWith("[") && value.endsWith("]")
+                        ? parseInlineArray(value)
+                        : parseScalar(value);
                 } else {
                     obj[key] = {};
                     obj.pendingKey = key;
@@ -517,11 +657,15 @@ function parseYaml(text) {
         const key = k.trim();
         const value = rest.join(":").trim();
         if (value) {
-            ctx.container[key] = parseScalar(value);
+            ctx.container[key] = value.startsWith("[") && value.endsWith("]")
+                ? parseInlineArray(value)
+                : parseScalar(value);
         } else {
-            ctx.container[key] = {};
+            const lookahead = nextNonEmptyLine(lines, i + 1);
+            const willBeArray = lookahead ? lookahead.trim().startsWith("- ") : false;
+            ctx.container[key] = willBeArray ? [] : {};
             ctx.pendingKey = key;
-            stack.push({ indent, container: ctx.container[key], type: "object" });
+            stack.push({ indent, container: ctx.container[key], type: willBeArray ? "array" : "object" });
         }
     }
 
@@ -536,7 +680,7 @@ function parseScalar(value) {
     }
     if (trimmed === "true") return true;
     if (trimmed === "false") return false;
-    if (!Number.isNaN(Number(trimmed)) && /^-?\\d+(\\.\\d+)?$/.test(trimmed)) {
+    if (!Number.isNaN(Number(trimmed)) && /^-?\d+(\.\d+)?$/.test(trimmed)) {
         return Number(trimmed);
     }
     return trimmed;

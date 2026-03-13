@@ -637,6 +637,14 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Show child count indicator at parent level.
   - Back returns to parent (and eventually root).
   - Verify at least 2‑level nesting works.
+
+- [ ] **Step 14.5.2 — Update UI after Done response**
+  - When tapping `Done`, update the local UI after the backend returns the updated task.
+  - Refresh from backend after save to confirm.
+
+- [ ] **Step 14.5.3 — Add task in current level**
+  - When inside a task, `+ Add Task` should create a subtask under the current task.
+  - At root, `+ Add Task` creates a top‑level task.
   - **Create task flow:**
     - `+` at current level creates a task at that level.
   - **Sync and feedback:**

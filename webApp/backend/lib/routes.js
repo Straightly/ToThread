@@ -176,7 +176,11 @@ export async function handleGetPlan(request, env) {
       })
     );
   } catch (err) {
-    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+    const msg = err && err.message ? err.message : String(err);
+    return jsonResponse(
+      { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
+      isAuthError(msg) ? 401 : 500
+    );
   }
 }
 
@@ -208,7 +212,11 @@ export async function handleCreatePlanTask(request, env) {
     const commit = await savePlan(env, plan.plan, `Add plan task ${result.task.id}`);
     return jsonResponse({ status: "ok", task: result.task, commit }, 200);
   } catch (err) {
-    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+    const msg = err && err.message ? err.message : String(err);
+    return jsonResponse(
+      { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
+      isAuthError(msg) ? 401 : 500
+    );
   }
 }
 
@@ -238,7 +246,11 @@ export async function handleUpdatePlanTask(request, env, taskId) {
     const commit = await savePlan(env, plan.plan, `Update plan task ${taskId}`);
     return jsonResponse({ status: "ok", task: result.task, commit }, 200);
   } catch (err) {
-    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+    const msg = err && err.message ? err.message : String(err);
+    return jsonResponse(
+      { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
+      isAuthError(msg) ? 401 : 500
+    );
   }
 }
 
@@ -260,7 +272,11 @@ export async function handleDeletePlanTask(request, env, taskId) {
     const commit = await savePlan(env, plan.plan, `Delete plan task ${taskId}`);
     return jsonResponse({ status: "ok", task: result.task, commit }, 200);
   } catch (err) {
-    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+    const msg = err && err.message ? err.message : String(err);
+    return jsonResponse(
+      { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
+      isAuthError(msg) ? 401 : 500
+    );
   }
 }
 
@@ -281,7 +297,11 @@ export async function handleGetPlanTask(request, env, taskId) {
 
     return jsonResponse({ status: "ok", task: result.task }, 200);
   } catch (err) {
-    return jsonResponse({ error: "unauthorized", message: String(err) }, 401);
+    const msg = err && err.message ? err.message : String(err);
+    return jsonResponse(
+      { error: isAuthError(msg) ? "unauthorized" : "server_error", message: msg },
+      isAuthError(msg) ? 401 : 500
+    );
   }
 }
 
