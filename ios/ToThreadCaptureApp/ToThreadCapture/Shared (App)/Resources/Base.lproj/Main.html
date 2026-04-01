@@ -58,6 +58,36 @@
         <div id="plan-error" style="display: none; background-color: #fee; border: 1px solid #f99; border-radius: 4px; padding: 10px; color: #c00;">
             <span id="error-message"></span>
         </div>
+
+        <!-- Task Details Overlay -->
+        <div id="task-details-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(255,255,255,0.98); z-index:10000; overflow:auto;">
+            <div style="max-width:600px; margin:40px auto 20px auto; background:#fff; border-radius:12px; box-shadow:0 2px 16px #0002; padding:24px 18px 18px 18px; position:relative;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+                    <h2 style="margin:0;">Edit Task Details</h2>
+                    <button id="close-task-details" style="font-size:22px; background:none; border:none; cursor:pointer;">×</button>
+                </div>
+                <form id="task-details-form">
+                    <label>Title:<br><input type="text" id="task-title" style="width:100%;margin-bottom:10px;"></label><br>
+                    <label>Tags (comma separated):<br><input type="text" id="task-tags" style="width:100%;margin-bottom:10px;"></label><br>
+                    <label>Description:<br><textarea id="task-description" rows="3" style="width:100%;margin-bottom:10px;"></textarea></label><br>
+                    <label>Result:<br><textarea id="task-result" rows="2" style="width:100%;margin-bottom:10px;"></textarea></label><br>
+                    <label>Status:<br>
+                        <select id="task-status" style="width:100%;margin-bottom:10px;">
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Blocked">Blocked</option>
+                            <option value="Done">Done</option>
+                            <option value="Continuous">Continuous</option>
+                        </select>
+                    </label><br>
+                    <div id="arbitrary-fields-container" style="margin-bottom:10px;"></div>
+                    <button type="button" id="add-field-btn" style="margin-bottom:10px;">+ Add Field</button>
+                    <div style="text-align:right;">
+                        <button type="submit" style="background:#175cd3;color:#fff;padding:8px 18px;border:none;border-radius:4px;font-size:16px;">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </body>
 </html>

@@ -44,6 +44,7 @@ let refreshTimeoutId = null;
 let currentLoadController = null;
 let loadCounter = 0;
 let currentLoadLabel = "Loading...";
+let currentEditingTaskId = null;
 
 // Initialize on page load
 window.addEventListener("DOMContentLoaded", () => {
@@ -378,7 +379,95 @@ async function markTaskDone(taskId) {
 }
 
 function showTaskDetails(task) {
-    alert(`Task: ${task.title}\nStatus: ${task.status}\nID: ${task.id}\n\nFull details editing coming soon.`);
+    const latest = task?.id ? planIndex.get(task.id) || task : task;
+    currentEditingTaskId = latest?.id || null;
+    // Show overlay
+    const overlay = document.getElementById("task-details-overlay");
+    if (!overlay) return;
+    overlay.style.display = "block";
+
+    // Populate fields
+    document.getElementById("task-title").value = latest?.title || "";
+    document.getElementById("task-tags").value = Array.isArray(latest?.tags) ? latest.tags.join(", ") : (latest?.tags || "");
+    document.getElementById("task-description").value = latest?.description || "";
+    document.getElementById("task-result").value = latest?.result || "";
+    document.getElementById("task-status").value = latest?.status || "Pending";
+
+    // Arbitrary fields
+    const arbContainer = document.getElementById("arbitrary-fields-container");
+    arbContainer.innerHTML = "";
+    // Show all fields not in the main set
+    const mainFields = new Set(["id","title","tags","description","result","status","tasks","subtasks"]);
+    Object.entries(latest || {}).forEach(([k,v]) => {
+        if (!mainFields.has(k)) {
+            addArbitraryField(k, v);
+        }
+    });
+
+    // Add field button
+    document.getElementById("add-field-btn").onclick = () => {
+        addArbitraryField("", "");
+    };
+
+    // Close button
+    document.getElementById("close-task-details").onclick = () => {
+        overlay.style.display = "none";
+    };
+
+    // Save on submit
+    document.getElementById("task-details-form").onsubmit = async (e) => {
+        e.preventDefault();
+        await saveTaskDetails(currentEditingTaskId || task?.id);
+        overlay.style.display = "none";
+    };
+}
+
+function addArbitraryField(name, value) {
+    const container = document.getElementById("arbitrary-fields-container");
+    const div = document.createElement("div");
+    div.style.marginBottom = "6px";
+    div.innerHTML = `<input type='text' placeholder='Field name' value="${name || ""}" style='width:40%;margin-right:6px;'>
+        <input type='text' placeholder='Value' value="${value || ""}" style='width:50%;margin-right:6px;'>
+        <button type='button' style='font-size:14px;'>&times;</button>`;
+    const [nameInput, valueInput, removeBtn] = div.querySelectorAll("input,button");
+    removeBtn.onclick = () => div.remove();
+    container.appendChild(div);
+}
+
+async function saveTaskDetails(taskId) {
+    const id = taskId;
+    if (!id) {
+        showError("No task selected");
+        return;
+    }
+    const title = document.getElementById("task-title").value;
+    const tags = document.getElementById("task-tags").value.split(",").map(t=>t.trim()).filter(Boolean);
+    const description = document.getElementById("task-description").value;
+    const result = document.getElementById("task-result").value;
+    const status = document.getElementById("task-status").value;
+    // Arbitrary fields
+    const arbFields = {};
+    document.querySelectorAll("#arbitrary-fields-container > div").forEach(div => {
+        const [nameInput, valueInput] = div.querySelectorAll("input");
+        const k = nameInput.value.trim();
+        if (k) arbFields[k] = valueInput.value;
+    });
+    // Compose new task object
+    const base = planIndex.get(id) || { id };
+    const updated = { ...base, title, tags, description, result, status, ...arbFields };
+    try {
+        clearErrorMessage();
+        const result = await apiCall(`/plan/tasks/${id}`, "PUT", { task: updated });
+        if (result && result.task) {
+            updateTaskInPlan(result.task);
+            renderCurrentLevel();
+            updateLastSyncTime();
+        } else {
+            loadPlanData();
+        }
+    } catch (error) {
+        showError(`Failed to save task: ${error.message}`);
+    }
 }
 
 async function addTopLevelTask() {

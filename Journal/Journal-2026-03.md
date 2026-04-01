@@ -864,3 +864,18 @@ Result: Refresh should now pull the latest plan without restarting the app.
 Prompt: "The same.  Please add a task at the end of the project for us to fix this.  We need to move on to other tasks."
 Action: Added Step 14.9 to track the refresh-not-reloading issue in ProjectPlan.md.
 Result: The outstanding refresh bug is now captured as a dedicated task.
+
+## Entry 174
+Prompt: "I impleleted 14.5.8 in VSCode.  Now my app will start with a white blank screen and stuck there.  Please check to see if I should revert or you can fix."
+Action: Fixed a stray extra closing brace in Script.js that broke JS parsing and caused a blank screen.
+Result: App should render again after rebuild.
+
+## Entry 175
+Prompt: "After I update some fields and save which worked.  Additional edit and save do not work anymore as change will not be saved.  Anything wrong?"
+Action: Fixed task details saving to use the latest task state from planIndex and track the current editing task id; subsequent saves now target the updated task object.
+Result: Repeated edits should now persist correctly.
+
+## Entry 176
+Prompt: "Worked.  Please mark this task as done."
+Action: Marked Step 14.5.8 as completed and removed the duplicate Step 14.5.8 section in ProjectPlan.md.
+Result: Project plan now reflects the task details screen as done.

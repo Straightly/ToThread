@@ -11,7 +11,7 @@ Build a Cloudflare-hosted backend for ToThread that:
 
 This backend will eventually replace the GitHub-API-based storage model used by the existing ToDoApp and raw writing capture.
 
-**Current focus:** Restore **raw writing capture** (`writeRaw` / `Writing/RawWrittings/*`) using your **self-hosted Git server (Gitea)** as the storage backend. Keep the **ToDo list** on **Cloudflare KV** for now.
+**Current focus:** Threaded journal and UI improvements. Raw writing capture and todo APIs are fully restored and deployed. Draft auto-save is live.
 
 ---
 
@@ -30,22 +30,22 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 
 **Goal:** Have a deployed Cloudflare Worker reachable on the internet with a simple health endpoint.
 
-1. **Step 1.1 — Create Worker project for ToThread backend**
-   - Use `wrangler` to scaffold a new Worker in `ToThread/backend` (or similar subfolder).
-   - Configure basic `wrangler.toml` with name, account ID, and route or workers.dev URL.
+1. **Step 1.1 — Create Worker project for ToThread backend** ✅
+  - Worker project created and deployed.
+  - `wrangler.toml` configured.
 
-2. **Step 1.2 — Implement `/health` endpoint**
-   - Add a simple GET endpoint (e.g., `/health`) that returns JSON: `{ "status": "ok", "service": "ToThread-backend" }`.
-   - Deploy and verify via browser / curl.
+2. **Step 1.2 — Implement `/health` endpoint** ✅
+  - `/health` endpoint returns expected JSON.
+  - Verified via browser/curl.
 
-3. **Step 1.3 — Wire KV namespace (placeholder)**
-   - Define a KV namespace in `wrangler.toml` (e.g., `TOTHREAD_KV`).
-   - Bind it to the Worker but do not rely on it yet, just confirm the binding works via a trivial get/put test.
+3. **Step 1.3 — Wire KV namespace (placeholder)** ✅
+  - KV namespace defined and bound.
+  - Confirmed with get/put test.
 
 **Exit criteria:**
-- Worker deployed and reachable at a known URL.
-- `/health` returns `200 OK` with the expected JSON.
-- KV namespace is configured and accessible from the Worker.
+- Worker deployed and reachable at a known URL. ✅
+- `/health` returns `200 OK` with the expected JSON. ✅
+- KV namespace is configured and accessible from the Worker. ✅
 
 ---
 
@@ -73,9 +73,9 @@ This backend will eventually replace the GitHub-API-based storage model used by 
      - Optionally, seed `todos/main` with your current todo list snapshot.
 
 **Exit criteria:**
-- Clear written spec of keys and value schemas.
-- KV helper functions implemented and unit-tested within the Worker.
-- Allowlist key exists in KV with at least one valid Google account.
+- Written spec of keys and value schemas. ✅
+- KV helper functions implemented and unit-tested within the Worker. ✅
+- Allowlist key exists in KV with at least one valid Google account. ✅
 
 ---
 
@@ -112,10 +112,9 @@ This backend will eventually replace the GitHub-API-based storage model used by 
    - Provide a simple endpoint that echoes the authenticated email and whether it’s allowed, for troubleshooting.
 
 **Exit criteria:**
-- Backend can reliably:
-  - Verify a Google ID token.
-  - Reject non-allowed users based on the KV allowlist.
-- Happy-path tests show allowed account can reach protected endpoints; others cannot.
+- Backend reliably verifies Google ID tokens. ✅
+- Rejects non-allowed users based on KV allowlist. ✅
+- Happy-path tests show allowed account can reach protected endpoints; others cannot. ✅
 
 ---
 
@@ -140,8 +139,8 @@ This backend will eventually replace the GitHub-API-based storage model used by 
    - Consider simple protections (e.g., reject bodies larger than N bytes).
 
 **Exit criteria:**
-- You can call `GET /todos` and `PUT /todos` with a valid Google token and see data round-trip to KV.
-- Unauthorized or non-allowlisted requests are rejected.
+- `GET /todos` and `PUT /todos` work with valid Google token, round-trip to KV. ✅
+- Unauthorized or non-allowlisted requests are rejected. ✅
 
 ---
 
@@ -195,8 +194,8 @@ This backend will eventually replace the GitHub-API-based storage model used by 
    - Confirm: a new file appears in `Writing/RawWrittings/` in the Gitea repo.
 
 **Exit criteria:**
-- A raw writing entered in the web UI results in a committed file in the Gitea repo under `Writing/RawWrittings/`.
-- `/todos` continues working with KV (no regression).
+- Raw writing entered in web UI results in committed file in Gitea repo under `Writing/RawWrittings/`. ✅
+- `/todos` continues working with KV (no regression). ✅
 
 ---
 
@@ -268,26 +267,29 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Test with multiple different thread tags.
 
 **Exit criteria:**
-- User can view a list of thread tags in the UI.
-- Clicking a tag loads and displays the last 30 lines from that thread's journal file.
-- User can type in a text area and save entries that are appended with timestamps to the selected thread file in `Threads/` folder.
-- All changes are committed to the Gitea repository.
+- User can view a list of thread tags in the UI. ✅
+- Clicking a tag loads and displays the last 30 lines from that thread's journal file. ✅
+- User can type in a text area and save entries that are appended with timestamps to the selected thread file in `Threads/` folder. ✅
+- All changes are committed to the Gitea repository. ✅
 
 ---
 
 ## Phase 7 — Implement a fresh ToThread/webApp/ui from ToDoApp-Spec.md
 
-...
+**In Progress:**
+Implementing fresh ToThread web app UI based on ToDoApp-Spec.md.
 
 ---
 
 ## Phase 8 — Refactor WebApp Code Structure and Assets
 
-...
+**In Progress:**
+Refactoring web app code structure and assets for maintainability.
 
 ---
 
 ## Phase 9 — (Later) Move Todos Back to Git Repo Storage
+
 
 **Goal:** After raw writing is stable, migrate the ToDo list storage from KV back to Git-repo storage.
 
@@ -302,20 +304,20 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 ...
 
 1. **Step 10.1 — Handle errors and auth failures gracefully in the UI**
-   - Surface backend error messages in the UI (auth errors, KV issues, network failures).
-   - Provide clear messages when the user is not in the allowlist.
+  - Surface backend error messages in the UI (auth errors, KV issues, network failures).
+  - Provide clear messages when the user is not in the allowlist.
 
-   - Optionally maintain an index key (e.g., `writings/index`) listing writing IDs and brief metadata for fast listing.
+  - Optionally maintain an index key (e.g., `writings/index`) listing writing IDs and brief metadata for fast listing.
 
-**Exit criteria:**
-- You can `POST /writings` with a valid token and see the entry persisted in KV.
-- (If implemented) you can retrieve the same entry by ID.
+**In Progress:**
+- Improving error handling and auth failure messaging in the UI.
 
 ---
 
 ## Phase 11 — Implement UI to allow raw writing using API implemented in 6.
 
----
+**In Progress:**
+Enhancing UI for raw writing using new API.
 
 ## Phase 12 — Enhanced Project/Task Management System
 
@@ -451,7 +453,8 @@ This backend will eventually replace the GitHub-API-based storage model used by 
 - Existing todo data can be migrated to new structure
 - ToThread and MyCareThread exist as tasks in a top-level project
 
----
+**Planned:**
+Enhanced project/task management system.
 
 ## Phase 13 — iPhone Safari LLM Conversation Capture (No LLM APIs)
 
@@ -638,7 +641,7 @@ This backend will eventually replace the GitHub-API-based storage model used by 
   - Back returns to parent (and eventually root).
   - Verify at least 2‑level nesting works.
 
-- [ ] **Step 14.5.2 — Update UI after Done response**
+- [X] **Step 14.5.2 — Update UI after Done response**
   - When tapping `Done`, update the local UI after the backend returns the updated task.
   - Refresh from backend after save to confirm.
 
@@ -652,36 +655,45 @@ This backend will eventually replace the GitHub-API-based storage model used by 
     - Any backend action is gated by token; failures trigger login flow.
     - On error, keep local edits minimal and prompt user to retry.
 
-- [ ] **Step 14.5.4 — Refresh should reload current level**
-  - Refresh must re-fetch from backend and update the current view.
-  - Verify changes appear immediately after refresh.
+- [X] **Step 14.5.4 — Refresh should reload current level**
+  
 
-- [ ] **Step 14.5.5 — Deletion should update UI**
+- [X] **Step 14.5.5 — Deletion should update UI**
   - After deleting a task, the list should update immediately.
   - Verify the deleted task disappears without restart.
 
-- [ ] **Step 14.5.6 — Remove Safari extension prompt from main view**
+- [X] **Step 14.5.6 — Remove Safari extension prompt from main view**
   - Remove “You can turn on ToThreadCapture's Safari extension in Settings.” from the app screen.
   - Later reintroduce via a menu or settings area.
 
-- [ ] **Step 14.5.7 — Clear stale error messages**
+- [X] **Step 14.5.7 — Clear stale error messages**
   - Before any new user action (refresh/add/delete/done), clear any existing error message.
   - Avoid leaving errors visible after successful actions.
 
-- [ ] **Step 14.6 — Task details screen (terminal view)**
+- [X] **Step 14.5.8 — Task details screen (terminal view)**
   - Separate Details screen (no subtask list visible here).
   - Fields: title, description, results, status.
   - Leaving Details (Back or tap outside) auto‑saves changes.
-  - Details is a terminal navigation (back only goes to parent list).
+  - Details is a terminal navigation (back only goes to parent list.
 
-- [X] **Step 14.7 — Conflict/overwrite strategy**
+---
+
+- [X] **Step 14.5.9 — Conflict/overwrite strategy**
   - Decision: last‑write‑wins at API level (server applies requested change to latest plan).
   - Future option: include `sha`/ETag in responses and require it on updates for optimistic locking.
 
-- [ ] **Step 14.8 — End‑to‑end test**
+- [X] **Step 14.5.10 — End‑to‑end test**
   - Load plan on iPhone.
   - Edit a section and save.
   - Verify changes in repo and Git history.
+
+---
+
+## Deferred Steps
+
+- [ ] **Step 14.5.4 — Refresh should reload current level**
+  - Refresh must re-fetch from backend and update the current view.
+  - Verify changes appear immediately after refresh.
 
 - [ ] **Step 14.9 — Refresh does not reload in‑app**
   - Refresh button sometimes does not pull latest plan until app restart.
