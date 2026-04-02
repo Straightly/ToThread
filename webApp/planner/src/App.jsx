@@ -22,19 +22,18 @@ function RoleGate({ children }) {
     return <div className="min-h-screen flex items-center justify-center text-gray-400">Loading...</div>;
   }
   if (!user) return <Navigate to="/login" replace />;
-  if (roles.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Account Pending</h2>
-          <p className="text-sm text-gray-500">Your account has no roles assigned yet. Please contact an administrator.</p>
-        </div>
-      </div>
-    );
-  }
+
+  // Multiple roles, no selection yet → pick a role
   if (roles.length > 1 && !activeRole) {
     return <Navigate to="/select-role" replace />;
   }
+
+  // Single role auto-set: route to the correct page
+  if (activeRole === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // activeRole === 'user' (or fallback) → render children (PlannerPage)
   return children;
 }
 
@@ -56,7 +55,7 @@ function AppRoutes() {
         <ProtectedRoute><RoleGate><PlannerPage /></RoleGate></ProtectedRoute>
       } />
       <Route path="/admin" element={
-        <ProtectedRoute><RoleGate><AdminRoute><AdminDashboard /></AdminRoute></RoleGate></ProtectedRoute>
+        <ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -26,15 +26,38 @@ export function AuthProvider({ children }) {
       .from('profiles')
       .select('id')
       .eq('id', u.id);
-    if (!data || data.length === 0) {
-      const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email;
-      await insforge.database.from('profiles').insert([{
-        id: u.id,
-        email: u.email,
-        name,
-      }]);
-    }
+    if (data && data.length > 0) return; // profile already exists
+
+    const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email;
+    await insforge.database.from('profiles').insert([{
+      id: u.id,
+      email: u.email,
+      name,
+    }]);
   }, []);
+
+  const setupUser = useCallback(async (u) => {
+    await ensureProfile(u);
+    let userRoles = await fetchRoles(u.id);
+
+    // Only assign 'user' role if the user has zero roles
+    if (userRoles.length === 0) {
+      const { error: insertErr } = await insforge.database.from('user_roles').insert([{
+        user_id: u.id,
+        role: 'user',
+      }]);
+      if (insertErr) {
+        console.error('Failed to assign default role:', insertErr);
+      }
+      userRoles = await fetchRoles(u.id);
+    }
+
+    setUser(u);
+    setRoles(userRoles);
+    if (userRoles.length === 1) {
+      setActiveRole(userRoles[0]);
+    }
+  }, [ensureProfile, fetchRoles]);
 
   const loadSession = useCallback(async () => {
     setLoading(true);
@@ -46,67 +69,18 @@ export function AuthProvider({ children }) {
         setActiveRole(null);
         return;
       }
-      const u = data.user;
-      await ensureProfile(u);
-      setUser(u);
-      const userRoles = await fetchRoles(u.id);
-      setRoles(userRoles);
-      if (userRoles.length === 1) {
-        setActiveRole(userRoles[0]);
-      }
+      await setupUser(data.user);
     } catch (err) {
       console.error('Session load error:', err);
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, [fetchRoles, ensureProfile]);
+  }, [setupUser]);
 
   useEffect(() => {
     loadSession();
   }, [loadSession]);
-
-  const signIn = useCallback(async (email, password) => {
-    const { data, error } = await insforge.auth.signInWithPassword({ email, password });
-    if (error) return { error };
-    setUser(data.user);
-    const userRoles = await fetchRoles(data.user.id);
-    setRoles(userRoles);
-    if (userRoles.length === 1) {
-      setActiveRole(userRoles[0]);
-    }
-    return { data };
-  }, [fetchRoles]);
-
-  const signUp = useCallback(async (email, password, name) => {
-    const { data, error } = await insforge.auth.signUp({
-      email,
-      password,
-      name,
-      redirectTo: window.location.origin + '/login',
-    });
-    if (error) return { error };
-
-    if (data?.requireEmailVerification) {
-      return { data, needsVerification: true };
-    }
-
-    if (data?.user) {
-      // Insert profile row
-      await insforge.database.from('profiles').insert([{
-        id: data.user.id,
-        email: data.user.email,
-        name: name || data.user.email,
-      }]);
-      setUser(data.user);
-      const userRoles = await fetchRoles(data.user.id);
-      setRoles(userRoles);
-      if (userRoles.length === 1) {
-        setActiveRole(userRoles[0]);
-      }
-    }
-    return { data };
-  }, [fetchRoles]);
 
   const signInWithGoogle = useCallback(async () => {
     await insforge.auth.signInWithOAuth({
@@ -131,8 +105,6 @@ export function AuthProvider({ children }) {
     roles,
     activeRole,
     loading,
-    signIn,
-    signUp,
     signInWithGoogle,
     signOut,
     selectRole,
