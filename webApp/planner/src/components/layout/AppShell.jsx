@@ -1,10 +1,11 @@
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ROLE_NAMES } from '../../lib/constants';
 
 export default function AppShell({ children }) {
   const { user, activeRole, signOut, selectRole, roles } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   function handleSwitchRole() {
     selectRole(null);
@@ -36,13 +37,29 @@ export default function AppShell({ children }) {
                 Tasks
               </button>
             )}
-            {activeRole === 'user' && roles.includes('admin') && (
-              <button
-                onClick={() => { selectRole('admin'); navigate('/admin'); }}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Admin
-              </button>
+            {activeRole === 'user' && (
+              <>
+                <button
+                  onClick={() => navigate('/')}
+                  className={`text-sm ${location.pathname === '/' ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  To Do
+                </button>
+                <button
+                  onClick={() => navigate('/planner')}
+                  className={`text-sm ${location.pathname === '/planner' ? 'text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Planner
+                </button>
+                {roles.includes('admin') && (
+                  <button
+                    onClick={() => { selectRole('admin'); navigate('/admin'); }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    Admin
+                  </button>
+                )}
+              </>
             )}
             {activeRole === 'admin' && (
               <button

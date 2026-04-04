@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTasks } from '../hooks/useTasks';
 import { canMarkDone, isDone, isContinuous } from '../lib/taskTree';
+import { buildTaskTrees, tasksToYaml, downloadYaml } from '../lib/exportTask';
+import { importTasksFromYaml } from '../lib/importTask';
+import insforge from '../insforge';
 import AppShell from '../components/layout/AppShell';
 import NavBar from '../components/layout/NavBar';
 import TaskList from '../components/tasks/TaskList';
@@ -10,15 +14,24 @@ import AddTaskButton from '../components/tasks/AddTaskButton';
 
 export default function PlannerPage() {
   const { user } = useAuth();
-  const { tasks, childCounts, loading, error, fetchTasks, addTask, updateTask, softDeleteTask, markDone, getTaskById } = useTasks(user?.id);
+  const location = useLocation();
+  const { tasks, childCounts, loading, error, fetchTasks, addTask, updateTask, softDeleteTask, markDone, getTaskById, reorderTasks } = useTasks(user?.id);
 
   // Navigation stack: array of { id, title } objects. Empty = root level.
-  const [navStack, setNavStack] = useState([]);
+  const [navStack, setNavStack] = useState(location.state?.initialNavStack || []);
   const [showFinished, setShowFinished] = useState(false);
   const [detailTask, setDetailTask] = useState(null);
   const [actionError, setActionError] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   const currentParentId = navStack.length > 0 ? navStack[navStack.length - 1].id : null;
+
+  useEffect(() => {
+    if (location.state?.initialNavStack) {
+      window.history.replaceState({}, '');
+    }
+  }, []);
 
   useEffect(() => {
     fetchTasks(currentParentId);
@@ -94,6 +107,55 @@ export default function PlannerPage() {
     ? tasks
     : tasks.filter(t => !isDone(t));
 
+  const handleExport = useCallback(async () => {
+    setActionError(null);
+    setExporting(true);
+    try {
+      const trees = await buildTaskTrees(visibleTasks, insforge, showFinished);
+      const yaml = tasksToYaml(trees);
+      const name = navStack.length > 0
+        ? navStack[navStack.length - 1].title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : 'project-plan';
+      downloadYaml(yaml, `${name}.yaml`);
+    } catch (err) {
+      setActionError(err.message || 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  }, [visibleTasks, showFinished, navStack]);
+
+  const handleImport = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.yaml,.yml';
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      setActionError(null);
+      setImporting(true);
+      try {
+        const text = await file.text();
+        await importTasksFromYaml(text, insforge, user.id, currentParentId);
+        fetchTasks(currentParentId);
+      } catch (err) {
+        setActionError(err.message || 'Import failed');
+      } finally {
+        setImporting(false);
+      }
+    };
+    input.click();
+  }, [user, currentParentId, fetchTasks]);
+
+  const handleReorder = useCallback(async (orderedIds) => {
+    setActionError(null);
+    const updates = orderedIds.map((id, i) => ({ id, position: i }));
+    const result = await reorderTasks(updates);
+    if (result.error) {
+      setActionError(result.error);
+    }
+    fetchTasks(currentParentId);
+  }, [reorderTasks, currentParentId, fetchTasks]);
+
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-4">
@@ -104,18 +166,46 @@ export default function PlannerPage() {
         />
 
         <div className="flex items-center justify-between mt-4 mb-3">
-          <h2 className="text-lg font-medium text-gray-900">
-            {navStack.length > 0 ? navStack[navStack.length - 1].title : 'Project Plan'}
-          </h2>
-          <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showFinished}
-              onChange={e => setShowFinished(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            Show done
-          </label>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-medium text-gray-900">
+              {navStack.length > 0 ? navStack[navStack.length - 1].title : 'Project Plan'}
+            </h2>
+            <button
+              type="button"
+              onClick={handleImport}
+              disabled={importing}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              title="Import tasks from YAML"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M17 8l-5-5m0 0L7 8m5-5v12" />
+              </svg>
+              {importing ? 'Importing...' : 'Import'}
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              title="Export visible tasks as YAML"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+              </svg>
+              {exporting ? 'Exporting...' : 'Export'}
+            </button>
+            <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showFinished}
+                onChange={e => setShowFinished(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Show done
+            </label>
+          </div>
         </div>
 
         {actionError && (
@@ -139,6 +229,7 @@ export default function PlannerPage() {
           onMarkDone={handleMarkDone}
           onDelete={handleDelete}
           onOpenDetail={handleOpenDetail}
+          onReorder={handleReorder}
         />
 
         <AddTaskButton onAdd={handleAddTask} />

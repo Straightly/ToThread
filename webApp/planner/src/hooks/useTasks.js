@@ -129,6 +129,26 @@ export function useTasks(userId) {
     return { data };
   }, []);
 
+  const reorderTasks = useCallback(async (updates) => {
+    // Optimistic: update local state immediately
+    const posMap = new Map(updates.map(u => [u.id, u.position]));
+    setTasks(prev => {
+      const next = prev.map(t => posMap.has(t.id) ? { ...t, position: posMap.get(t.id) } : t);
+      next.sort((a, b) => a.position - b.position);
+      return next;
+    });
+
+    // Persist to DB
+    const results = await Promise.all(
+      updates.map(u =>
+        insforge.database.from('tasks').update({ position: u.position }).eq('id', u.id)
+      )
+    );
+    const failed = results.find(r => r.error);
+    if (failed) return { error: failed.error.message };
+    return { success: true };
+  }, []);
+
   return {
     tasks,
     childCounts,
@@ -140,5 +160,6 @@ export function useTasks(userId) {
     softDeleteTask,
     markDone,
     getTaskById,
+    reorderTasks,
   };
 }

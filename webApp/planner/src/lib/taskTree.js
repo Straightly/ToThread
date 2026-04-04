@@ -34,3 +34,75 @@ export function joinUsersWithRoles(profiles, roles) {
   }
   return profiles.map(p => ({ ...p, roles: roleMap[p.id] || [] }));
 }
+
+// --- Todo page helpers ---
+
+export function buildTaskMap(tasks) {
+  const map = new Map();
+  for (const t of tasks) map.set(t.id, t);
+  return map;
+}
+
+export function buildChildrenMap(tasks) {
+  const map = new Map();
+  for (const t of tasks) {
+    const pid = t.parent_id || null;
+    if (!map.has(pid)) map.set(pid, []);
+    map.get(pid).push(t);
+  }
+  for (const children of map.values()) {
+    children.sort((a, b) => a.position - b.position);
+  }
+  return map;
+}
+
+export function findFirstNonDoneLeaf(taskId, childrenMap) {
+  const children = childrenMap.get(taskId) || [];
+  for (const child of children) {
+    const grandChildren = childrenMap.get(child.id) || [];
+    if (grandChildren.length === 0) {
+      if (child.status !== 'Done') return child;
+      continue;
+    }
+    const result = findFirstNonDoneLeaf(child.id, childrenMap);
+    if (result) return result;
+  }
+  return null;
+}
+
+export function computeTodoTasks(tasks, taskMap, childrenMap) {
+  const todoIds = new Set();
+  for (const task of tasks) {
+    if (Array.isArray(task.tags) && task.tags.includes('#Todo')) {
+      todoIds.add(task.id);
+    }
+    if (isContinuous(task)) {
+      const leaf = findFirstNonDoneLeaf(task.id, childrenMap);
+      if (leaf) todoIds.add(leaf.id);
+    }
+  }
+  // Return in DFS order (matches planner hierarchy traversal)
+  const ordered = [];
+  (function dfs(parentId) {
+    const children = childrenMap.get(parentId) || [];
+    for (const child of children) {
+      if (todoIds.has(child.id)) ordered.push(child);
+      dfs(child.id);
+    }
+  })(null);
+  return ordered;
+}
+
+export function buildParentChain(taskId, taskMap) {
+  const chain = [];
+  let current = taskMap.get(taskId);
+  let depth = 0;
+  while (current && current.parent_id && depth < 100) {
+    const parent = taskMap.get(current.parent_id);
+    if (!parent) break;
+    chain.unshift({ id: parent.id, title: parent.title });
+    current = parent;
+    depth++;
+  }
+  return chain;
+}

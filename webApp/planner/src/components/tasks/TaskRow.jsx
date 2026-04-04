@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import StatusBadge from './StatusBadge';
 import SubtaskBadge from './SubtaskBadge';
 import { isDone, isContinuous } from '../../lib/taskTree';
@@ -8,11 +10,22 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
   const [swipeX, setSwipeX] = useState(0);
   const touchStartRef = useRef(null);
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
   const taskIsDone = isDone(task);
   const hasChildren = childCount.total > 0;
   const showDoneBtn = !taskIsDone && !isContinuous(task) && (!hasChildren || childCount.unfinished === 0);
 
   function handleTouchStart(e) {
+    // Don't start swipe tracking if touching the drag handle
+    if (e.target.closest('[data-drag-handle]')) return;
     touchStartRef.current = e.touches[0].clientX;
     setSwipeX(0);
   }
@@ -24,7 +37,7 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
   }
 
   function handleTouchEnd() {
-    if (swipeX > 80 && hasChildren) {
+    if (swipeX > 80) {
       onNavigateInto(task);
     } else if (swipeX < -80) {
       setConfirmDelete(true);
@@ -33,14 +46,44 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
     touchStartRef.current = null;
   }
 
+  // Compose transforms: sortable (vertical) and swipe (horizontal) are mutually exclusive
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  const swipeStyle = swipeX ? { transform: `translateX(${swipeX * 0.3}px)` } : {};
+  const style = swipeX ? swipeStyle : sortableStyle;
+
   return (
     <div
-      className="py-3 flex items-center gap-3 group"
+      ref={setNodeRef}
+      className={`py-3 flex items-center gap-3 group ${
+        isDragging ? 'opacity-50 shadow-lg bg-white rounded-lg z-10 relative' : ''
+      }`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ transform: swipeX ? `translateX(${swipeX * 0.3}px)` : undefined }}
+      style={style}
     >
+      {/* Drag handle */}
+      <button
+        type="button"
+        data-drag-handle
+        className="p-1 touch-none cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0"
+        aria-label="Reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="3" r="1.5" />
+          <circle cx="11" cy="3" r="1.5" />
+          <circle cx="5" cy="8" r="1.5" />
+          <circle cx="11" cy="8" r="1.5" />
+          <circle cx="5" cy="13" r="1.5" />
+          <circle cx="11" cy="13" r="1.5" />
+        </svg>
+      </button>
+
       {/* Title area - clickable to open detail */}
       <button
         onClick={() => onOpenDetail(task)}
@@ -54,22 +97,18 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
       <div className="flex items-center gap-2 shrink-0">
         <StatusBadge status={task.status} />
 
-        {hasChildren && (
-          <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
-        )}
+        <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
 
-        {/* Navigate into subtasks (desktop) */}
-        {hasChildren && (
-          <button
-            onClick={() => onNavigateInto(task)}
-            className="p-1 text-gray-400 hover:text-blue-600 transition"
-            title="View subtasks"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        )}
+        {/* Navigate into subtasks */}
+        <button
+          onClick={() => onNavigateInto(task)}
+          className="p-1 text-gray-400 hover:text-blue-600 transition"
+          title="View subtasks"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
 
         {/* Mark done button */}
         {showDoneBtn && (

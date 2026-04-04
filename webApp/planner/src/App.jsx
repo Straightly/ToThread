@@ -5,6 +5,7 @@ import { isAdmin } from './lib/taskTree';
 import LoginPage from './pages/LoginPage';
 import RoleSelectorPage from './pages/RoleSelectorPage';
 import PlannerPage from './pages/PlannerPage';
+import TodoPage from './pages/TodoPage';
 import AdminDashboard from './pages/AdminDashboard';
 
 function ProtectedRoute({ children }) {
@@ -33,7 +34,7 @@ function RoleGate({ children }) {
     return <Navigate to="/admin" replace />;
   }
 
-  // activeRole === 'user' (or fallback) → render children (PlannerPage)
+  // activeRole === 'user' (or fallback) → render children
   return children;
 }
 
@@ -52,6 +53,9 @@ function AppRoutes() {
         <ProtectedRoute><RoleSelectorPage /></ProtectedRoute>
       } />
       <Route path="/" element={
+        <ProtectedRoute><RoleGate><TodoPage /></RoleGate></ProtectedRoute>
+      } />
+      <Route path="/planner" element={
         <ProtectedRoute><RoleGate><PlannerPage /></RoleGate></ProtectedRoute>
       } />
       <Route path="/admin" element={
