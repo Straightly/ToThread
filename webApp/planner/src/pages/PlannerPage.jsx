@@ -15,7 +15,7 @@ import AddTaskButton from '../components/tasks/AddTaskButton';
 export default function PlannerPage() {
   const { user } = useAuth();
   const location = useLocation();
-  const { tasks, childCounts, loading, error, fetchTasks, addTask, updateTask, softDeleteTask, markDone, getTaskById, reorderTasks } = useTasks(user?.id);
+  const { tasks, childCounts, loading, error, fetchTasks, addTask, updateTask, softDeleteTask, markDone, getTaskById, reorderTasks, indentTask, outdentTask } = useTasks(user?.id);
 
   // Navigation stack: array of { id, title } objects. Empty = root level.
   const [navStack, setNavStack] = useState(location.state?.initialNavStack || []);
@@ -156,6 +156,28 @@ export default function PlannerPage() {
     fetchTasks(currentParentId);
   }, [reorderTasks, currentParentId, fetchTasks]);
 
+  const handleIndent = useCallback(async (taskId, newParentId) => {
+    setActionError(null);
+    const result = await indentTask(taskId, newParentId);
+    if (result.error) {
+      setActionError(result.error);
+    } else {
+      fetchTasks(currentParentId);
+    }
+  }, [indentTask, currentParentId, fetchTasks]);
+
+  const handleOutdent = useCallback(async (taskId) => {
+    setActionError(null);
+    const result = await outdentTask(taskId, currentParentId);
+    if (result.error) {
+      setActionError(result.error);
+    } else {
+      fetchTasks(currentParentId);
+    }
+  }, [outdentTask, currentParentId, fetchTasks]);
+
+  const isRootLevel = currentParentId === null;
+
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-4">
@@ -225,11 +247,14 @@ export default function PlannerPage() {
           tasks={visibleTasks}
           childCounts={childCounts}
           loading={loading}
+          isRootLevel={isRootLevel}
           onNavigateInto={navigateInto}
           onMarkDone={handleMarkDone}
           onDelete={handleDelete}
           onOpenDetail={handleOpenDetail}
           onReorder={handleReorder}
+          onIndent={handleIndent}
+          onOutdent={handleOutdent}
         />
 
         <AddTaskButton onAdd={handleAddTask} />

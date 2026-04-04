@@ -149,6 +149,65 @@ export function useTasks(userId) {
     return { success: true };
   }, []);
 
+  const indentTask = useCallback(async (taskId, newParentId) => {
+    // Get next position among new parent's children
+    const { data: siblings } = await insforge.database
+      .from('tasks')
+      .select('position')
+      .eq('parent_id', newParentId)
+      .is('deleted_at', null)
+      .order('position', { ascending: false })
+      .limit(1);
+    const nextPosition = siblings?.length > 0 ? siblings[0].position + 1 : 0;
+
+    const { error } = await insforge.database
+      .from('tasks')
+      .update({ parent_id: newParentId, position: nextPosition })
+      .eq('id', taskId);
+    if (error) return { error: error.message };
+    return { success: true };
+  }, []);
+
+  const outdentTask = useCallback(async (taskId, currentParentId) => {
+    // Get current parent to find grandparent and parent's position
+    const { data: parent, error: parentError } = await insforge.database
+      .from('tasks')
+      .select('id, parent_id, position')
+      .eq('id', currentParentId)
+      .single();
+    if (parentError) return { error: parentError.message };
+
+    const grandparentId = parent.parent_id;
+
+    // Shift siblings of parent that come after it to make room
+    let shiftQuery = insforge.database
+      .from('tasks')
+      .select('id, position')
+      .is('deleted_at', null)
+      .gt('position', parent.position);
+    if (grandparentId === null) {
+      shiftQuery = shiftQuery.is('parent_id', null);
+    } else {
+      shiftQuery = shiftQuery.eq('parent_id', grandparentId);
+    }
+    const { data: toShift } = await shiftQuery;
+    if (toShift?.length > 0) {
+      await Promise.all(
+        toShift.map(s =>
+          insforge.database.from('tasks').update({ position: s.position + 1 }).eq('id', s.id)
+        )
+      );
+    }
+
+    // Move the task to grandparent level, right after former parent
+    const { error } = await insforge.database
+      .from('tasks')
+      .update({ parent_id: grandparentId, position: parent.position + 1 })
+      .eq('id', taskId);
+    if (error) return { error: error.message };
+    return { success: true };
+  }, []);
+
   return {
     tasks,
     childCounts,
@@ -161,5 +220,7 @@ export function useTasks(userId) {
     markDone,
     getTaskById,
     reorderTasks,
+    indentTask,
+    outdentTask,
   };
 }

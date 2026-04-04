@@ -14,7 +14,7 @@ import {
 } from '@dnd-kit/sortable';
 import TaskRow from './TaskRow';
 
-export default function TaskList({ tasks, childCounts, loading, onNavigateInto, onMarkDone, onDelete, onOpenDetail, onReorder }) {
+export default function TaskList({ tasks, childCounts, loading, isRootLevel, onNavigateInto, onMarkDone, onDelete, onOpenDetail, onReorder, onIndent, onOutdent }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
@@ -52,15 +52,19 @@ export default function TaskList({ tasks, childCounts, loading, onNavigateInto, 
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
         <div className="divide-y divide-gray-100">
-          {tasks.map(task => (
+          {tasks.map((task, index) => (
             <TaskRow
               key={task.id}
               task={task}
               childCount={childCounts[task.id] || { total: 0, unfinished: 0 }}
+              taskAbove={index > 0 ? tasks[index - 1] : null}
+              isRootLevel={isRootLevel}
               onNavigateInto={onNavigateInto}
               onMarkDone={onMarkDone}
               onDelete={onDelete}
               onOpenDetail={onOpenDetail}
+              onIndent={onIndent}
+              onOutdent={onOutdent}
             />
           ))}
         </div>

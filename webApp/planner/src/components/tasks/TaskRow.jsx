@@ -5,7 +5,7 @@ import StatusBadge from './StatusBadge';
 import SubtaskBadge from './SubtaskBadge';
 import { isDone, isContinuous } from '../../lib/taskTree';
 
-export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, onDelete, onOpenDetail }) {
+export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNavigateInto, onMarkDone, onDelete, onOpenDetail, onIndent, onOutdent }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [swipeX, setSwipeX] = useState(0);
   const touchStartRef = useRef(null);
@@ -24,8 +24,8 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
   const showDoneBtn = !taskIsDone && !isContinuous(task) && (!hasChildren || childCount.unfinished === 0);
 
   function handleTouchStart(e) {
-    // Don't start swipe tracking if touching the drag handle
-    if (e.target.closest('[data-drag-handle]')) return;
+    // Don't start swipe tracking if touching the drag handle or indent buttons
+    if (e.target.closest('[data-drag-handle]') || e.target.closest('[data-indent-btn]')) return;
     touchStartRef.current = e.touches[0].clientX;
     setSwipeX(0);
   }
@@ -83,6 +83,42 @@ export default function TaskRow({ task, childCount, onNavigateInto, onMarkDone, 
           <circle cx="11" cy="13" r="1.5" />
         </svg>
       </button>
+
+      {/* Outdent (move up a level) — placeholder when at root */}
+      {!isRootLevel ? (
+        <button
+          type="button"
+          data-indent-btn
+          onClick={() => onOutdent(task.id)}
+          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition"
+          aria-label="Move up a level"
+          title="Move up a level"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      ) : (
+        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content" />
+      )}
+
+      {/* Indent (make subtask of task above) — placeholder when first */}
+      {taskAbove ? (
+        <button
+          type="button"
+          data-indent-btn
+          onClick={() => onIndent(task.id, taskAbove.id)}
+          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition"
+          aria-label="Make subtask of task above"
+          title="Make subtask of task above"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      ) : (
+        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content" />
+      )}
 
       {/* Title area - clickable to open detail */}
       <button
