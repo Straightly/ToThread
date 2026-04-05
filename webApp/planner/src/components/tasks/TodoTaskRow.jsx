@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import StatusBadge from './StatusBadge';
 import SubtaskBadge from './SubtaskBadge';
+import StartWorkButton from '../timer/StartWorkButton';
 import { isDone, isContinuous } from '../../lib/taskTree';
 
 export default function TodoTaskRow({ task, childCount, parentChain, onNavigateToPlanner, onMarkDone, onDelete, onOpenDetail }) {
@@ -66,6 +67,8 @@ export default function TodoTaskRow({ task, childCount, parentChain, onNavigateT
 
         <div className="flex items-center gap-2 shrink-0">
           <StatusBadge status={task.status} />
+
+          <StartWorkButton taskId={task.id} taskTitle={task.title} />
 
           <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
 

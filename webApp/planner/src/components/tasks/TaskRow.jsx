@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import StatusBadge from './StatusBadge';
 import SubtaskBadge from './SubtaskBadge';
+import StartWorkButton from '../timer/StartWorkButton';
 import { isDone, isContinuous } from '../../lib/taskTree';
 
 export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNavigateInto, onMarkDone, onDelete, onOpenDetail, onIndent, onOutdent }) {
@@ -132,6 +133,8 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
 
       <div className="flex items-center gap-2 shrink-0">
         <StatusBadge status={task.status} />
+
+        <StartWorkButton taskId={task.id} taskTitle={task.title} />
 
         <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
 

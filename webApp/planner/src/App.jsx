@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { TimerProvider } from './contexts/TimerContext';
 import { useAuth } from './hooks/useAuth';
 import { isAdmin } from './lib/taskTree';
 import LoginPage from './pages/LoginPage';
 import RoleSelectorPage from './pages/RoleSelectorPage';
 import PlannerPage from './pages/PlannerPage';
 import TodoPage from './pages/TodoPage';
+import TimePage from './pages/TimePage';
 import AdminDashboard from './pages/AdminDashboard';
 
 function ProtectedRoute({ children }) {
@@ -58,6 +60,9 @@ function AppRoutes() {
       <Route path="/planner" element={
         <ProtectedRoute><RoleGate><PlannerPage /></RoleGate></ProtectedRoute>
       } />
+      <Route path="/time" element={
+        <ProtectedRoute><RoleGate><TimePage /></RoleGate></ProtectedRoute>
+      } />
       <Route path="/admin" element={
         <ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>
       } />
@@ -70,7 +75,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <TimerProvider>
+          <AppRoutes />
+        </TimerProvider>
       </AuthProvider>
     </BrowserRouter>
   );

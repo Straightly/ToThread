@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTodoTasks } from '../hooks/useTodoTasks';
 import AppShell from '../components/layout/AppShell';
+import TimerBar from '../components/timer/TimerBar';
 import TodoList from '../components/tasks/TodoList';
 import TaskDetailOverlay from '../components/tasks/TaskDetailOverlay';
 
@@ -61,6 +62,8 @@ export default function TodoPage() {
     <AppShell>
       <div className="max-w-2xl mx-auto px-4 py-4">
         <h2 className="text-lg font-medium text-gray-900 mb-3">Tasks To Do</h2>
+
+        <TimerBar />
 
         {actionError && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
