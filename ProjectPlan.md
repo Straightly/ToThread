@@ -689,6 +689,69 @@ Enhanced project/task management system.
 
 ---
 
+## Phase 15 — Git-Native Project Graph Planning (Deferred Architecture Spec)
+
+**Goal:** Preserve the idea of a Git-native project management system that scales better than a single large plan file or a structured database, without interrupting current execution priorities.
+
+**Core idea:**
+- Treat Git as the source of truth.
+- Treat a task as either:
+  - a **simple task** stored inside its parent project plan file, or
+  - a **project task** promoted into its own plan file under a project/subproject folder.
+- Allow a project task to be **demoted** back into a simple task by absorbing its file contents into the parent.
+- Support cross-project hierarchy so a high-level task can drill into a lower-level project plan.
+
+**Architecture components:**
+- **Canonical storage:** file-based project plans in the repo, one plan file per project boundary.
+- **Working-copy backend:** server maintains a local clone/worktree, applies validated edits, commits, pulls/rebases as needed, then pushes like a normal Git client.
+- **Plan mutation layer:** one safe tool/service performs add/edit/move/reorder/promote/demote operations; UI and Codex both use this layer instead of editing plan files directly.
+- **Project graph index:** scanner discovers project plan files, resolves links between parent tasks and subproject plans, detects broken links/cycles, and supports roll-up summaries.
+- **UI editor:** tree view for navigation and re-organization; drag/drop and promotion/demotion should happen in UI rather than through raw file editing.
+- **Codex skill:** project-management skill uses the same mutation layer and graph index so Codex can manage plans safely in the repo.
+
+**Data model requirements:**
+- Ordering is authoritative and must be preserved directly, not approximated by ranking.
+- Stable task IDs must survive reordering, moves, promotion to project, and demotion back to task.
+- A project node must carry enough metadata to locate and load its child project plan.
+- Plan format should be chosen for safe machine editing and validation; avoid raw YAML as the long-term canonical authoring format.
+
+**Operational requirements:**
+- Serialize writes per repo or per affected project subtree.
+- Validate before commit: schema, IDs, ordering, links, promotion/demotion rules.
+- Surface Git conflicts as explicit workflow states; do not silently overwrite.
+- Keep commit messages meaningful and tied to user actions.
+
+**Product direction / rationale:**
+- Prefer this Git-native project graph approach over the structured database planner for the long-term project-management architecture.
+- Keep project plans close to the code and folder structure they describe.
+- Make UI and Codex first-class editors over the same Git-backed planning system.
+
+**Non-goals for now:**
+- Do not build this until current higher-priority work is finished.
+- Do not choose the final plan file format yet.
+- Do not implement enterprise features yet (permissions, reporting, analytics); first prove the core file/graph/editing model.
+
+- [ ] **Step 15.1 — Revisit and decide canonical plan format**
+  - Compare JSON, Markdown+frontmatter, or another safer machine-editable format.
+  - Primary decision criteria: ordering safety, validation, Git diff quality, Codex safety, and UI compatibility.
+
+- [ ] **Step 15.2 — Define promote/demote semantics**
+  - Specify exactly how a task becomes a project file and how a project file is absorbed back into its parent.
+  - Preserve IDs, ordering, and links across both operations.
+
+- [ ] **Step 15.3 — Design working-copy backend + mutation layer**
+  - Define fetch/edit/validate/commit/push flow.
+  - Define conflict handling and write serialization rules.
+
+- [ ] **Step 15.4 — Design project graph UI**
+  - Define drill-down, drag/drop reorder, move across projects, and promote/demote interactions.
+  - Favor UI-based re-org over raw text editing.
+
+- [ ] **Step 15.5 — Design Codex project-management skill**
+  - Define commands/workflows for discovering plans, editing safely, validating, and summarizing project status.
+
+---
+
 ## Deferred Steps
 
 - [ ] **Step 14.5.4 — Refresh should reload current level**
