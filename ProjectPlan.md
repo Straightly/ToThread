@@ -767,3 +767,10 @@ Enhanced project/task management system.
 - `ProjectPlan.md` can be loaded, edited, and saved from iPhone.
 - Changes are committed to the repo with a clear commit message.
 - Auth and allowlist enforcement remain intact.
+
+---
+
+## Appendix — Related Plans in This Repo
+
+- `webApp/planner-plan.md` — InsForge-backed planner web app plan.
+- `InsForge-SDK-Service-ContractTests-Plan.md` — Record/replay contract test suite plan for verifying the InsForge `@insforge/sdk` ↔ service HTTP interface.
