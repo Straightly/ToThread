@@ -190,3 +190,45 @@ Result: Deployed. Planner page tasks have indent/outdent arrows between drag han
 Prompt: "Now I want to add time management feature. I want to have a total hours to allocate to all continuous tasks for a week starting Monday. So I need a page of all continuous tasks on which I set and allocate the total hours. Showing both the set total and allocated total. At any giving moment, a timer will be in one and only one of the three modes: sleeping, working, and transitioning. [...] I want to see a few weeks history afterward to see how I was doing between actual time spent on each continuous task vs. planned time and how much time is spent on sleeping and transitioning. [...] Please check my design for omissions."
 Action: Wrote spec to TimeManagement-Spec.md including state transition diagram and edge cases. Created 4 DB tables via SQL (timer_state, time_entries, weekly_budgets, weekly_allocations) with RLS ownership policies. Created src/lib/timeUtils.js with pure utility functions: getWeekStart, getWeekEnd, formatWeekLabel, computeElapsedMs, formatDuration, msToHours, clipEntryToWeek (week boundary splitting), findLowestContinuousAncestor (walks parent chain for time aggregation), aggregateWeeklyTime (full weekly aggregation engine), isNoOp (transition validator), weekStartToISO. Created src/contexts/TimerContext.jsx: global timer state management with DB persistence via upsert, 1-second elapsed tick via setInterval, visibility change listener for multi-device sync, first-use lazy initialization (no DB row until first transition), transition function that records departing segment as time_entry then upserts new state. Created src/hooks/useTimer.js convenience hook. Created src/components/timer/TimerBar.jsx: shows mode indicator (colored dot: gray/blue/green-pulsing), task name when working, elapsed time in monospace, Stop button (sleeping/working), Sleep button (transitioning/working), "Time ->" link to /time page. Created src/components/timer/StartWorkButton.jsx: play icon button for task rows, shows pulsing green dot when active on that task, uses useTimer() internally (no prop drilling needed). Added StartWorkButton to both TodoTaskRow.jsx and TaskRow.jsx between StatusBadge and SubtaskBadge. Created src/hooks/useWeeklyTime.js: fetches all tasks + time_entries + weekly_budget + weekly_allocations for current week in parallel, computes actuals via aggregateWeeklyTime, provides saveBudget and saveAllocation callbacks. Created src/hooks/useWeeklyHistory.js: fetches past 12 weeks of data, computes per-task breakdown (planned vs actual) for each week, includes unplanned actuals for tasks with time but no allocation. Created src/pages/TimePage.jsx: back button to TodoPage, TimerBar at top, current week section with budget input and allocation table (continuous tasks x planned hours input + actual hours), summary rows for allocated total/unallocated work/sleeping/transitioning, history section with read-only past weeks showing per-task breakdown. Updated App.jsx: wrapped AppRoutes with TimerProvider inside AuthProvider, added /time route with ProtectedRoute+RoleGate, imported TimePage. Updated TodoPage.jsx: added TimerBar import and placed it below the heading.
 Result: Deployed to https://kgcw84it.insforge.site. Three-state timer (Transitioning/Sleeping/Working) with TimerBar on Tasks To Do page, play buttons on all task rows in both pages, dedicated /time page for weekly budget allocation and history. Build: 537KB JS, 15KB CSS.
+
+## Entry 39
+Prompt: "do I need to rerun the upgrade now that I reverted all the changes?"
+Action: Explained that `git reset --hard origin/main` reverts tracked files like `package.json`/`package-lock.json` but does not touch `node_modules`, so you may end up with a mismatch between what Git says you depend on and what’s installed locally. Provided the minimal checks/commands to either keep `main` identical to `origin/main` or re-apply the upgrade on `main`.
+Result: Guidance provided: check `webApp/planner/package.json` for the desired `@insforge/sdk` version; if `main` is meant to match `origin/main`, run `npm install`/`npm ci` to re-sync dependencies only if needed; otherwise rerun the upgrade and commit it on the branch you want.
+
+## Entry 40
+Prompt: "I just want to upgrade to the latest version of the SDK after I reverted the change.  What do I need to do?"
+Action: Logged the prompt and provided a minimal, deterministic upgrade procedure: run `npm install @insforge/sdk@latest` inside `webApp/planner`, verify `package.json`/`package-lock.json` and installed version match, rebuild, then commit the dependency bump on the intended branch.
+Result: Guidance provided.
+
+## Entry 41
+**Prompt:**
+```text
+Another language model started to solve this problem and produced a summary of its thinking process. You also have access to the state of the tools that were used by that language model. Use this to build on the work that has already been done and avoid duplicating work. Here is the summary produced by the other language model, use the information in this summary to assist with your own analysis:
+
+Need to produce handoff summary. We must also obey instruction about journaling? The user prompt is to create summary; we should journal prompt first. But they requested compaction; maybe journaling is required anyway. We'll append to journal file? It's in repo; should do. But they asked for summary; we can do journaling with apply_patch quickly adding entry. We'll do. Then output summary with structured bullets. Need to be concise.
+
+We must reflect that repository has been reset to origin main at some point; earlier large set of changes disappeared; journal file now only up to entry 40. They reverted and want upgrade steps. Last user request to produce handoff summary, not to execute upgrade. We already provided steps in entry 40 and message. But we should give summary: user wants tidy, not debugging. Current state: they reverted to origin main; plan to upgrade SDK after revert. Need to instruct next LLM to check current branch state and upgrade if not done. There were earlier upgrades to @insforge/sdk 1.2.5 on another branch, but likely not on main now. They want commands. We did journaling in Journal/Journal-2026-04.md. Mention constraints: must journal all user prompts, pick lowest Journal folder (exists at /Users/zhian/Projects/ToThread/Journal). cannot proceed if journaling blocked. Also can't change git index without user approval due to sandbox restrictions (.git writes require escalated; user rejected). But perhaps in new session, can ask again.
+
+Also note: for up-to-date version checks, used `npm view @insforge/sdk version` (as of Apr 20 2026 it was 1.2.5). But in future, might have changed. Should check again.
+
+Also, there were earlier issues: write requests 404 etc; many debugging steps, including redeploys and adding ensureInsforgeJwt helper; but those changes likely were in a branch and then reverted. The user now says stop debugging; just tidy.
+
+Thus handoff: tasks remain: if user still wants to upgrade on main after revert, do `npm -C webApp/planner install @insforge/sdk@latest`, ensure package.json/lock updated; run build; redeploy using `npx @insforge/cli deployments deploy webApp/planner` if needed; commit on separate branch. Possibly add tidy scripts/docs about checking versions first.
+
+But user asked to upgrade the SDK after revert; we didn't execute now. Next LLM should likely execute in their environment, unless user will. But might.
+
+Need to include key commands for upgrade and verifying.
+
+Also note: in this environment, network restrictions require escalation for `npm view`/`npm install`/`npx @insforge/cli`. In prior run, some commands were rejected by user. For any needed network, request escalation with justification.
+
+Also mention that dist is .gitignored, and deployment uses InsForge CLI to deploy project root to Vercel; build happens on remote.
+
+Also: repo uses InsForge project config `.insforge/project.json` with appkey kgcw84it etc; but maybe confidential. In summary we can mention it, but careful? It's in repo file and in logs. It's okay. But keep minimal.
+
+Ok: Journal entry for prompt compaction. We'll add entry 41.
+
+Let's patch journal accordingly.
+```
+**Action:** Appended this prompt to the monthly journal to preserve context and avoid duplicating prior work.
+**Result Summary:** Journal updated with Entry 41.
