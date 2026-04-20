@@ -232,3 +232,59 @@ Let's patch journal accordingly.
 ```
 **Action:** Appended this prompt to the monthly journal to preserve context and avoid duplicating prior work.
 **Result Summary:** Journal updated with Entry 41.
+
+## Entry 42
+**Prompt:**
+```text
+Please redeploy so I can have the latest version running.
+```
+**Action:** Start a fresh planner build and redeploy the `webApp/planner` app so production picks up the new `@insforge/sdk` version.
+**Result Summary:** Built planner and redeployed successfully. Live at https://kgcw84it.insforge.site (Deployment ID: c2fedba9-76fa-4a31-85f4-edbe9312c694).
+
+## Entry 43
+**Prompt:**
+```text
+After the new deployment, the error is fixed.  
+```
+**Action:** Recorded confirmation that the redeploy resolved the issue.
+**Result Summary:** User confirmed the error is fixed after the new deployment.
+
+## Entry 44
+**Prompt:**
+```text
+Now my question is this:  When we debug, since we are using an SDK, we should have stopped after we verified that we are making the API calls with the parameters.  If that are affirmative, the problem should be within the SDK and we should have stopped and contact the SDK providers or find out there is a server and SDK version mismatch.  We end up spending 5 hours total debugging.  What was that you are trying to debug?
+```
+**Action:** Answered by clarifying what signals suggested the bug might be in app integration/auth/request construction vs SDK/server mismatch, and why debugging continued past “parameters look right”.
+**Result Summary:** Explained the debugging target (auth token injection/request path/environment config) and identified the earlier stop condition that should have triggered an SDK upgrade/version check sooner.
+
+## Entry 45
+**Prompt:**
+```text
+This is what I do not understand and want to understand. If this is a SDK and with API and we are not trying to “debug the SDK internals” so much as to debug the integration points?  If the SDK can look fine (you call the right method with the right params) but still fail because something around it is wrong?  That simply defy the purpose of SDK, does it not?  If the call is correct, the error has to be on the other side of the call.  Even if the integration is sessionful, we should only need to verify the session is in good shape as the session state is part of the API requirements.  Why are we running around trying to debug or even fix on the calling side?
+```
+**Action:** Explained why “method + params look right” doesn’t guarantee the on-wire request (base URL, headers, token injection, environment) is correct, and why client-side verification is still necessary with an SDK.
+**Result Summary:** Clarified the SDK’s responsibilities vs the app’s responsibilities and provided the correct stopping criteria for escalating to SDK/server mismatch.
+
+## Entry 46
+**Prompt:**
+```text
+We spent 5 hours and still haven't verify that we are actually sending the correct on-write request?  What was missing?
+```
+**Action:** Identified the specific missing evidence needed to conclusively validate the on-wire request (Network capture/HAR, server-side request logs, deployed SDK version confirmation) and how those gaps prolonged debugging.
+**Result Summary:** Explained what artifacts were missing and what to collect first next time to shorten time-to-root-cause.
+
+## Entry 47
+**Prompt:**
+```text
+I am trying to become more profecient with Vibe Coding.  So I am trying to understand why this is taken so long.  I can honestly say if I am debugging this manually, I would have resolved this issue much quicker.  What should I be looking for in the future so I do not get in this situaion and waste time like this?
+```
+**Action:** Provided a future-proof debugging checklist and timeboxing approach for SDK + web deployments to keep “vibe coding” evidence-driven and fast.
+**Result Summary:** Shared concrete signals/artifacts to collect first (HAR, runtime version/config, correlation IDs) and stop/escalation rules to avoid long guesswork loops.
+
+## Entry 48
+**Prompt:**
+```text
+nvm.
+```
+**Action:** Acknowledged and paused.
+**Result Summary:** No further action.
