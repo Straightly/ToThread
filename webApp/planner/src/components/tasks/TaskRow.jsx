@@ -58,7 +58,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
   return (
     <div
       ref={setNodeRef}
-      className={`py-3 flex items-center gap-3 group ${
+      className={`py-3 flex items-start gap-3 group ${
         isDragging ? 'opacity-50 shadow-lg bg-white rounded-lg z-10 relative' : ''
       }`}
       onTouchStart={handleTouchStart}
@@ -70,7 +70,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
       <button
         type="button"
         data-drag-handle
-        className="p-1 touch-none cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0"
+        className="p-1 touch-none cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 shrink-0 mt-0.5"
         aria-label="Reorder"
         {...attributes}
         {...listeners}
@@ -91,7 +91,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
           type="button"
           data-indent-btn
           onClick={() => onOutdent(task.id)}
-          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition"
+          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition mt-0.5"
           aria-label="Move up a level"
           title="Move up a level"
         >
@@ -100,7 +100,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
           </svg>
         </button>
       ) : (
-        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content" />
+        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content mt-0.5" />
       )}
 
       {/* Indent (make subtask of task above) — placeholder when first */}
@@ -109,7 +109,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
           type="button"
           data-indent-btn
           onClick={() => onIndent(task.id, taskAbove.id)}
-          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition"
+          className="p-1 text-gray-300 hover:text-gray-500 shrink-0 transition mt-0.5"
           aria-label="Make subtask of task above"
           title="Make subtask of task above"
         >
@@ -118,77 +118,79 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
           </svg>
         </button>
       ) : (
-        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content" />
+        <span className="p-1 shrink-0 w-3.5 h-3.5 box-content mt-0.5" />
       )}
 
-      {/* Title area - clickable to open detail */}
-      <button
-        onClick={() => onOpenDetail(task)}
-        className={`flex-1 text-left text-sm truncate ${
-          taskIsDone ? 'line-through text-gray-400' : 'text-gray-900'
-        }`}
-      >
-        {task.title}
-      </button>
-
-      <div className="flex items-center gap-2 shrink-0">
-        <StatusBadge status={task.status} />
-
-        <StartWorkButton taskId={task.id} taskTitle={task.title} />
-
-        <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
-
-        {/* Navigate into subtasks */}
+      <div className="flex-1 min-w-0">
+        {/* Title area - clickable to open detail */}
         <button
-          onClick={() => onNavigateInto(task)}
-          className="p-1 text-gray-400 hover:text-blue-600 transition"
-          title="View subtasks"
+          onClick={() => onOpenDetail(task)}
+          className={`block w-full text-left text-sm leading-5 break-words ${
+            taskIsDone ? 'line-through text-gray-400' : 'text-gray-900'
+          }`}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+          {task.title}
         </button>
 
-        {/* Mark done button */}
-        {showDoneBtn && (
-          <button
-            onClick={() => onMarkDone(task.id)}
-            className="p-1 text-gray-400 hover:text-green-600 transition"
-            title="Mark done"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
-        )}
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+          <StatusBadge status={task.status} />
 
-        {/* Delete button (desktop) */}
-        {confirmDelete ? (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => { onDelete(task.id); setConfirmDelete(false); }}
-              className="text-xs text-red-600 font-medium hover:text-red-800"
-            >
-              Confirm
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="text-xs text-gray-400 hover:text-gray-600"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
+          <StartWorkButton taskId={task.id} taskTitle={task.title} />
+
+          <SubtaskBadge total={childCount.total} unfinished={childCount.unfinished} />
+
+          {/* Navigate into subtasks */}
           <button
-            onClick={() => setConfirmDelete(true)}
-            className="p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
-            title="Delete"
+            onClick={() => onNavigateInto(task)}
+            className="p-1 text-gray-400 hover:text-blue-600 transition"
+            title="View subtasks"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-        )}
+
+          {/* Mark done button */}
+          {showDoneBtn && (
+            <button
+              onClick={() => onMarkDone(task.id)}
+              className="p-1 text-gray-400 hover:text-green-600 transition"
+              title="Mark done"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Delete button (desktop) */}
+          {confirmDelete ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => { onDelete(task.id); setConfirmDelete(false); }}
+                className="text-xs text-red-600 font-medium hover:text-red-800"
+              >
+                Confirm
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+              title="Delete"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

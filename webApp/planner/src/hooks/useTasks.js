@@ -1,6 +1,21 @@
 import { useState, useCallback } from 'react';
 import insforge from '../insforge';
-import { countChildren, canMarkDone, canSoftDelete } from '../lib/taskTree';
+import { countChildren, canMarkDone, canSoftDelete, isDoneStatus } from '../lib/taskTree';
+
+async function ensureParentReopened(parentId) {
+  if (!parentId) return;
+  const { data: parent, error: fetchError } = await insforge.database
+    .from('tasks')
+    .select('id, status')
+    .eq('id', parentId)
+    .maybeSingle();
+  if (fetchError || !parent) return;
+  if (!isDoneStatus(parent.status)) return;
+  await insforge.database
+    .from('tasks')
+    .update({ status: 'In Progress' })
+    .eq('id', parentId);
+}
 
 export function useTasks(userId) {
   const [tasks, setTasks] = useState([]);
@@ -81,6 +96,15 @@ export function useTasks(userId) {
       .select();
 
     if (error) return { error: error.message };
+    // If we just created a subtask under a "Done" parent, reopen the parent so it can be
+    // explicitly completed again after the new subtask is handled.
+    if (parentId) {
+      try {
+        await ensureParentReopened(parentId);
+      } catch {
+        // Best-effort: don't fail the subtask creation if reopening fails.
+      }
+    }
     return { data: data?.[0] };
   }, [userId]);
 
@@ -165,6 +189,11 @@ export function useTasks(userId) {
       .update({ parent_id: newParentId, position: nextPosition })
       .eq('id', taskId);
     if (error) return { error: error.message };
+    try {
+      await ensureParentReopened(newParentId);
+    } catch {
+      // Best-effort; indent is already done.
+    }
     return { success: true };
   }, []);
 

@@ -436,3 +436,638 @@ That is why TIP has to be part of the security design that by design, it will NO
 ```
 **Action:** Updated the TIP plan to require “PII/PHI-free by design” recordings, credential-free tapes, and a user-facing TIP workflow available to all users.
 **Result Summary:** Updated `/Users/zhian/Projects/ToThread/InsForge-SDK-Service-ContractTests-Plan.md` to add a Security/Privacy-by-design section for TIP (no PII/PHI, no credentials, fail-closed) and changed the optional UI trigger from admin-only to user-facing.
+
+---
+
+# Recovery Batch (Reconstructed From Chat Transcript)
+
+Note: The journal file appears to have been overwritten/truncated at some point. The entries below are reconstructed from the Codex chat transcript and may duplicate older entries. When exact results are uncertain, the Result Summary is marked as "Unknown/Not captured".
+
+## Entry 67
+**Prompt:**
+```text
+Insforge
+```
+**Action:** Began collecting context about the InsForge-deployed planner app and how it is structured.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 68
+**Prompt:**
+```text
+I would like to understand the architecture of this project.  Can you tell me the archtecture component of this application?  In particular, what will it take for me to convert this product to have a backend, say, in AWS or Oracle cloud?
+```
+**Action:** Discussed high-level architecture and what migrating to a custom backend would entail (API layer, auth, DB, storage, deployment).
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 69
+**Prompt:**
+```text
+I do not want to migrate, just use migration as a ruler to gauge the current architecture.  I like the Git storage pattern a lot, except that it is heavy when the repository get large.  Are there open source database having similar storage pattern as Git?
+```
+**Action:** Discussed Git-like storage patterns (content-addressed storage, immutable objects, merkle DAGs) and systems that resemble them.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 70
+**Prompt:**
+```text
+For my project management piece, What I really want is that I keep a project which may be composed of sub projects as subfolders.  Each folder may have their own projects plans.  So a task at high lever can be a tree of tasks at a lowe level.  Right now, this part of my project management is file based in a git repository with sym link to other projects and the project files are not linked at all.  I am pondering how can I add these projects and their tasks/subtasks into my project manage tool.  Better still, have a skill built so I can do my projects and management my projects all in Codex.
+```
+**Action:** Discussed how to model project/subproject/task trees and potential Codex skill integration.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 71
+**Prompt:**
+```text
+.yaml file is too britle.  Codex can mess it up really bad.  For example, if a string has a column in it, .yaml file cannot be ready.  .md file is much more human friendly but does not seemed to parse very well.  That's why I would really like to have a UI view, particularly when I re-org the projects.
+```
+**Action:** Discussed tradeoffs of YAML/JSON/MD and adding UI-based editing for safer re-org.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 72
+**Prompt:**
+```text
+ordering is a challege for json and is significant in my project plan.  I think ordering works much better than rankings.
+```
+**Action:** Discussed ordering-preserving formats and storage approaches.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 73
+**Prompt:**
+```text
+Yeah.  I can also solve the repository issue with actually clone a git repo on my server so it will push commited change just like a client will do so my remote clients (web UI) can operate on that through an agent like any other agent do, instead of using API directly on a repo server.
+```
+**Action:** Discussed server-side working copy / agent-mediated Git operations.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 74
+**Prompt:**
+```text
+I can mark a task as a project to make it a file itself, and demote it to a simple task to absort the file into the parent.  What i am getting is another dimention extention to git's source tree which parellel multiple working copies of the same repostory.  It seemed my solution can be very scalable and might be a good base for an enterprise level project management tool.
+```
+**Action:** Discussed scalability/architecture implications of multi-working-copy project plans.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 75
+**Prompt:**
+```text
+It is also much better than the structured database version.
+```
+**Action:** Discussed why file/tree-based workflows can be more flexible than rigid schemas.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 76
+**Prompt:**
+```text
+Please write a compact spec as a section in the ToThread's project plan for the time being.  I have too many ideas and I have to prioritize them.  I need to stay on one idea and finish one if I want to accomplish any.
+```
+**Action:** Added a compact spec section into the ToThread project plan to capture/priority-frame the idea.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 77
+**Prompt:**
+```text
+/Planning:  In Writing/Ideas/ProjectEvaluation.md, I am trying to evaluating my ideas that I can work on.  The goal is to trying to find resources to make them work.  Resources include both getting paid and getting the resources needed for experiement and marketing efforts to get user.  Tried to use mark down to structure it but did not use the markers correct.  Please fix.
+```
+**Action:** Fixed Markdown structure in `Writing/Ideas/ProjectEvaluation.md` (list markers/formatting).
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 78
+**Prompt:**
+```text
+Please find my project management functions and change the display of task from one line to two lines.  With the title on the first line and buttons on another line.  Right now the title is too narrow to see much.  The project management is deployed as a project into InsForge.
+```
+**Action:** Updated the task row UI to use a two-line layout (title line + controls line) for better readability.
+**Result Summary:** Deployed the two-line task layout for testing (deployment id not captured in reconstructed entry).
+
+## Entry 79
+**Prompt:**
+```text
+Plese deploy so I can test.
+```
+**Action:** Deployed the planner UI to InsForge hosting for live testing.
+**Result Summary:** Deployed (deployment id not captured in reconstructed entry).
+
+## Entry 80
+**Prompt:**
+```text
+Wonderful.  It worked.
+```
+**Action:** Logged confirmation and continued.
+**Result Summary:** Confirmed feature worked.
+
+## Entry 81
+**Prompt:**
+```text
+Have you been journal my prompts?
+```
+**Action:** Explained journaling status and discussed adding a persistent prompt journal.
+**Result Summary:** Unknown/Not captured (reconstructed).
+
+## Entry 82
+**Prompt:**
+```text
+Session start: Crete a journal folder if one does not exist.  Please journal ALL my prompts in the appropriate monthly file under ./Journal (e.g., Journal/Journal-YYYY-MM.md), logging each prompt verbatim with an Action note, and backfill any prompts from this session that are not yet written.  After executing each prompt, record the summary of the results. Continue logging and do not stop.
+```
+**Action:** Began prompt journaling and backfilled session prompts into the monthly journal file.
+**Result Summary:** Journaling enabled (details may be incomplete due to later overwrite).
+
+## Entry 83
+**Prompt:**
+```text
+One thing I noticed when I use this application on my iPhone is that after a short time, I will get error saying invalid token and I have to go through the login steps.  Can this be fix so we can keep the token valid as long as allowed in the Chrome browser on an iPhone.  I do not seem to have the same issue on Mac mini (that is this machine.)
+```
+**Action:** Updated auth/session handling to improve iOS Chrome session persistence (refresh flow reliability).
+**Result Summary:** Deployed auth refresh-token body flow changes (deployment id not captured in reconstructed entry).
+
+## Entry 84
+**Prompt:**
+```text
+In my ToDo screen, I am displaying the top tasks and tasks tagged as #todo.  Please verify that behavior and then modify it to display all tasks that are in inProgress status.
+```
+**Action:** Verified ToDo selection logic and modified it to include all tasks with `In Progress` status.
+**Result Summary:** Deployed updated ToDo filtering logic (deployment id not captured in reconstructed entry).
+
+## Entry 85
+**Prompt:**
+```text
+What I want to use my time management function for is tro track how much time I spend on each task between real and budget.  Please add a button for each task so I can add time to it with a starting time and an end time.  Since all my time is currently accounted for, add a time should be taking from previous time records.  For example, if currently the time is recorded for task1 from time11 to time12.  If I add a time to task2 of start time after time21 and before tim22, the time for task1 will be changed to task1 from time11 to time21 -1 second, task2 from time21 to time22, and task1 from time22+1second to tim12.  If the added time stride to previous records, adjust the two existing records accordingly.  If the added time overlaps the currently ongoing task, add the times slots to record the time on fished portion of the current task before the added slot, and set the starting time of the ongoing tasks accordingly.  In this featuere, the sleeping and transition type of time slots should be treated as if they were tasks and be treated the same way.
+```
+**Action:** Implemented manual time insertion with automatic splitting/adjusting of adjacent/overlapped time entries, including sleeping/transitioning treated as modes.
+**Result Summary:** Deployed manual time insertion feature (deployment id not captured in reconstructed entry).
+
+## Entry 86
+**Prompt:**
+```text
+I saw you handled the case where a previous time record might need to be deleted.  That is good.  Do another round of check to see if there are other edge cases.
+```
+**Action:** Reviewed additional edge cases around time slot insertion and adjusted logic to handle deletions/splits robustly.
+**Result Summary:** Improved edge-case handling for time insertion (deployment id not captured in reconstructed entry).
+
+## Entry 87
+**Prompt:**
+```text
+I tried at add task today.  The field show up, and then the screen went back to where it was without having the new tasks added.  Can you check what was wrong?  It was working a few days back.  Do not fix it yet.  Just diagnosis it so I can understand and see if there is anything I need to proactively do to prevent future regression.
+```
+**Action:** Began diagnosing task insert failures; inspected network calls and compared read vs write behavior.
+**Result Summary:** Identified write calls failing (404/401 symptoms) while reads still worked.
+
+## Entry 88
+**Prompt:**
+```text
+I tried on my phone and on my desktop.  So the tasks were not inserted.  I tried on tasks already have sub task and task with no sub task.  Neither work.  The one without sub task will show "No tasks yet.  Add one below" even after I try to add one.
+```
+**Action:** Continued diagnosis; confirmed inserts weren’t persisted in multiple scenarios/devices.
+**Result Summary:** Confirmed add-task broken broadly; continued debugging.
+
+## Entry 89
+**Prompt:**
+```text
+How does one trigger an "Load the Planner page and click a request to something like /api/database/records/tasks...."?
+```
+**Action:** Explained how to capture such requests in DevTools Network (XHR/fetch), including preflight vs fetch distinction.
+**Result Summary:** Provided steps for reproducing/capturing.
+
+## Entry 90
+**Prompt:**
+```text
+In the authentication field, I saw the bearer token.  It says Bearer then the token starting with ey...
+```
+**Action:** Confirmed that is a JWT access token and explained how it’s used for authenticated calls.
+**Result Summary:** Guidance provided.
+
+## Entry 91
+**Prompt:**
+```text
+Also, I am seeing all my existing tasks.  So select is returning all existing tasks, just not the new ones.
+```
+**Action:** Differentiated working reads from failing writes; narrowed investigation to write endpoints/auth.
+**Result Summary:** Diagnosis focus tightened to POST/PATCH failures.
+
+## Entry 92
+**Prompt:**
+```text
+Post https://kgcw84it.us-west.insforge.app/api/database/records/tasks?columns=%22user_id%22%2C%22parent_id%22%2C%22title%22%2C%22position%22%2C%22status%22%2C%22custom_fields%22&select=* results in 404 no found and error {"error":"AUTH_INVALID_CREDENTIALS","message":"No token provided","statusCode":401,"nextActions":"Check the token is valid or login to get a new token."}
+```
+**Action:** Interpreted the symptoms: 404 in console, but body indicating 401/no token when opened without headers; explained difference between tab-open GET and authenticated fetch.
+**Result Summary:** Clarified why “open in new tab” shows 401 even if original fetch included headers.
+
+## Entry 93
+**Prompt:**
+```text
+No, the Failing POST has exact same token like other requests.
+```
+**Action:** Considered possibilities: browser stripping headers, CORS preflight differences, SDK request construction differences between read/write.
+**Result Summary:** Continued diagnosis.
+
+## Entry 94
+**Prompt:**
+```text
+curl 'https://kgcw84it.us-west.insforge.app/api/database/records/tasks?columns=%22user_id%22%2C%22parent_id%22%2C%22title%22%2C%22position%22%2C%22status%22%2C%22custom_fields%22&select=*' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7' \
+  -H 'authorization: Bearer <TOKEN> \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://kgcw84it.insforge.site' \
+  -H 'pragma: no-cache' \
+  -H 'prefer: return=representation' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://kgcw84it.insforge.site/' \
+  -H 'sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: cross-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36' \
+  --data-raw '[{"user_id":"99ccdc46-3048-49be-8d7e-2d0d4b12fa0a","parent_id":"1246fa8b-f38f-414e-9c88-8bb23a3f140d","title":"Read BitNN","position":0,"status":"Pending","custom_fields":{}}]'. And the status code shows 404 Not Found, Do not see a "general" section or any redirect.
+```
+**Action:** Used curl patterns to validate status codes and compare with browser behavior.
+**Result Summary:** Confirmed 404 symptoms on the write call (reconstructed).
+
+## Entry 95
+**Prompt:**
+```text
+When I copy the failed request as cURL and run it, it returns {}%.  How do I check its return status code?
+```
+**Action:** Explained using `curl -i` / `-v` and how to inspect status lines.
+**Result Summary:** Provided debugging guidance.
+
+## Entry 96
+**Prompt:**
+```text
+curl return curl -sS -i 'https://kgcw84it.us-west.insforge.app/api/database/records/tasks?columns=%22user_id%22%2C%22parent_id%22%2C%22title%22%2C%22position%22%2C%22status%22%2C%22custom_fields%22&select=*' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7' \
+  -H 'authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OWNjZGM0Ni0zMDQ4LTQ5YmUtOGQ3ZS0yZDBkNGIxMmZhMGEiLCJlbWFpbCI6InpoaWFuLmpvYkBnbWFpbC5jb20iLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImlhdCI6MTc3NjU2MDMyMCwiZXhwIjoxNzc2NTYxMjIwfQ.oxaElZkWemzfwepjOgNpT5XBrW7Ryvy8c15fMi7TWbs' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://kgcw84it.insforge.site' \
+  -H 'pragma: no-cache' \
+  -H 'prefer: return=representation' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://kgcw84it.insforge.site/' \
+  -H 'sec-ch-ua: "Chromium";v="146", "Not-A.Brand";v="24", "Google Chrome";v="146"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: cross-site' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36' \
+  --data-raw '[{"user_id":"99ccdc46-3048-49be-8d7e-2d0d4b12fa0a","parent_id":"e100b4fe-90d7-4212-9f2c-f3c7831d0bb0","title":"test","position":4,"status":"Pending","custom_fields":{}}]'
+```
+**Action:** Reviewed the exact curl reproduction for write failures.
+**Result Summary:** Confirmed “HTTP/2 404” response and `{}` body in some cases (reconstructed).
+
+## Entry 97
+**Prompt:**
+```text
+Wrong post:  HTTP/2 404 
+date: Sun, 19 Apr 2026 01:07:05 GMT
+content-type: application/json; charset=utf-8
+content-length: 2
+server: openresty/1.27.1.2
+x-powered-by: Express
+access-control-allow-origin: https://kgcw84it.insforge.site
+vary: Origin
+access-control-allow-credentials: true
+access-control-expose-headers: Content-Range,Preference-Applied
+x-ratelimit-limit: 3000
+x-ratelimit-remaining: 2998
+x-ratelimit-reset: 1776561650
+etag: W/"2-vyGp6PvFo4RvsFtPoIWeCReyIC8"
+
+{}%
+```
+**Action:** Interpreted the response as route-not-found (404) with empty JSON body; continued isolating whether this is a backend routing issue or auth header omission.
+**Result Summary:** Diagnosis continued (reconstructed).
+
+## Entry 98
+**Prompt:**
+```text
+One thing not sure if is related.  The backend was deployed to InsForge.  Yesterday, I got an email saying my service was paused and had to get on the dashboard to reactivate it.  When I post a new task, I was posting to an end point.  Could it be that posting to that end point is triggering some other https calls and it was the later ones that were failing?  If so, will a simply re-deploying my app fix it?  If there is any miss or obsolete wiring up, redeployment should help.
+```
+**Action:** Considered InsForge project pause/unpause and whether redeploy would fix wiring; attempted redeploys.
+**Result Summary:** Redeploy alone did not resolve write failures (reconstructed).
+
+## Entry 99
+**Prompt:**
+```text
+No.  Please try to re-deploy my app see if that makes any difference.
+```
+**Action:** Redeployed the app.
+**Result Summary:** No improvement for write failures (reconstructed).
+
+## Entry 100
+**Prompt:**
+```text
+No.  I want you to redeploy my app.
+```
+**Action:** Redeployed the app again as requested.
+**Result Summary:** Still failing (reconstructed).
+
+## Entry 101
+**Prompt:**
+```text
+Still getting the same error.  One thing I did notice which I do not understand is that all my requests, instead of get and or post, are all pairs of preflight and fetch.  The only request with error is the fetch for the POST.
+```
+**Action:** Explained CORS: preflight (OPTIONS) + actual fetch; why it’s normal and what to look at.
+**Result Summary:** Provided explanation; issue persisted.
+
+## Entry 102
+**Prompt:**
+```text
+No.  Please asnwer the question I posted.  Is it strange or could it be a problem that I am seeing "preflight" and "fetch", rather than POST?
+```
+**Action:** Explained why DevTools shows “preflight” + “fetch” and how to identify the actual method (POST/PATCH) in request details.
+**Result Summary:** Guidance provided.
+
+## Entry 103
+**Prompt:**
+```text
+404 means URL not found.  Can you check in the app deployment to see if the route is registered?  Do we have any other POST APIs that I can try to see if they have the same problem?
+```
+**Action:** Clarified `/api/database/records/*` is InsForge backend route; identified other write operations in app to use as probes.
+**Result Summary:** Found multiple writes failing; diagnosis continued (reconstructed).
+
+## Entry 104
+**Prompt:**
+```text
+Now things have changed from bad to terrible.  My site only load the first page.  I cannot even click on the Google button to login.  I am sure something is wrong with InsForge.  I will wait a few minutes before I try again.
+```
+**Action:** Diagnosed backend availability issues (503/paused service) and suggested checking InsForge project state.
+**Result Summary:** Issue traced to service pause/unavailability (reconstructed).
+
+## Entry 105
+**Prompt:**
+```text
+Yeah.  OAuth init error: InsForgeError: Network request failed: Failed to fetch
+    at gc.handleRequest (index-Drbp6T4P.js:40:4887)
+    at async gc.request (index-Drbp6T4P.js:40:5081)
+    at async Tc.signInWithOAuth (index-Drbp6T4P.js:40:9565)
+    at async index-Drbp6T4P.js:41:8884
+```
+**Action:** Triaged OAuth init failure as network/service availability issue; correlated with pause/503/CORS.
+**Result Summary:** Confirmed backend requests failing (reconstructed).
+
+## Entry 106
+**Prompt:**
+```text
+Access to fetch at 'https://kgcw84it.us-west.insforge.app/api/auth/oauth/google?code_challenge=RvM6cRbwKXnVGGkLS6byEzTm3nxWjf_3CYa6n9HQN68&redirect_uri=https%3A%2F%2Fkgcw84it.insforge.site' from origin 'https://kgcw84it.insforge.site' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+**Action:** Explained that missing CORS headers can happen when service returns 503/HTML or is paused; recommended confirming backend health.
+**Result Summary:** Consistent with paused/unavailable backend (reconstructed).
+
+## Entry 107
+**Prompt:**
+```text
+when I click on the Google button, I did not see, like other request, the network requests show up with preflight and fetch.  All error are just in the console.
+```
+**Action:** Suggested checking Console/Network filters and seeing if request is blocked before network layer due to CORS/failed fetch.
+**Result Summary:** Guidance provided.
+
+## Entry 108
+**Prompt:**
+```text
+Right.  now I see 503 Service Unavailable
+```
+**Action:** Identified backend outage/unavailability; linked to InsForge pause.
+**Result Summary:** Confirmed service unavailable (reconstructed).
+
+## Entry 109
+**Prompt:**
+```text
+Turned out my project was paused again.  I reactivated it and now it is working but adding task still fail without any error message.  Try to mark a task as completed with the same result:  No error but the task is not marked.
+```
+**Action:** Implemented better error surfacing for write operations (avoid treating `{}` or missing message as success) and made task insert/update detection stricter.
+**Result Summary:** Deployed write-error surfacing improvements; core InsForge write 404 persisted (reconstructed).
+
+## Entry 110
+**Prompt:**
+```text
+No error on the page itself.  In the console, I saw error PATCH https://kgcw84it.us-west.insforge.app/api/database/records/tasks?id=eq.415abf0c-0622-4725-9f9a-3e4e42021a8d&select=* 404 (Not Found)
+(anonymous)	@	index-De_19Pfo.js:40
+then	@	index-De_19Pfo.js:37.  Used to be FETCH, now it is PATCH.  But still same error.  Status 404.  Clock on the request open another web page in Chrome showing https://kgcw84it.us-west.insforge.app/api/database/records/tasks?id=eq.415abf0c-0622-4725-9f9a-3e4e42021a8d&select=*   
+  "error": "AUTH_INVALID_CREDENTIALS",
+  "message": "No token provided",
+  "statusCode": 401,
+  "nextActions": "Check the token is valid or login to get a new token."
+}
+```
+**Action:** Explained “open in new tab” loses auth headers; continued investigation of why write calls appear to be missing auth/route.
+**Result Summary:** Confirmed persistent 404 on write; diagnosis continued (reconstructed).
+
+## Entry 111
+**Prompt:**
+```text
+# AGENTS.md instructions for /Users/zhian/Projects/ToThread
+
+<INSTRUCTIONS>
+Always journal ALL user prompts (priority #1: never lose work).
+
+Critical requirement: Make sure all prompts from the user are journalled. If journalling fails for whatever reason, stop and ask the user what to do. Do not proceed with other work until journalling is resolved.
+
+## What to log (every prompt)
+For each user prompt, append to the selected journal file:
+- **Prompt:** the prompt verbatim in a fenced code block
+- **Action:** what Codex did (or plans to do if blocked)
+- **Result Summary:** outcome / what changed
+
+## Where to log (priority #2: lowest project journal)
+Write to the *lowest* (most specific) project journal available.
+
+Selection algorithm:
+1. Determine referenced paths:
+   - any repo/workspace paths explicitly mentioned in the prompt
+   - the current working directory (CWD)
+2. For each referenced path, walk upward toward the workspace/project root.
+   - If the workspace is a git repo, treat the git root as the project root.
+   - Otherwise treat the filesystem root of the workspace as the project root.
+3. While walking upward, collect any directories that contain a `Journal/` folder.
+4. Choose the deepest matching `Journal/` folder (longest path). This is the “lowest project journal”.
+5. Append to its monthly journal file: `Journal/Journal-YYYY-MM.md`.
+
+## Fallback behavior (no silent creation)
+If no `Journal/` folder exists anywhere from the deepest referenced path up to the project root:
+- Do NOT silently create one.
+- Offer to create a `Journal/` folder and present choices of directories from the deepest referenced directory up to the project root.
+- Only create the `Journal/` folder after the user chooses a directory.
+
+## Non-negotiable
+If journaling is blocked (missing journal path, ambiguity, permissions), stop and resolve journaling first.
+
+## Response hygiene
+Do not append routine suggestions or “If you want, I can…”. Only surface suggestions when they are materially important (risk, tradeoff, or a missing step that could cause failure).
+</INSTRUCTIONS><environment_context>
+  <cwd>/Users/zhian/Projects/ToThread</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-04-18</current_date>
+  <timezone>America/Los_Angeles</timezone>
+</environment_context>
+```
+**Action:** Adopted and followed the journaling requirements throughout subsequent work; stopped to resolve journaling whenever blocked.
+**Result Summary:** Journaling workflow enforced (later discovered file overwrite/truncation).
+
+## Entry 112
+**Prompt:**
+```text
+I got a window saying "Request failed (404)".
+```
+**Action:** Logged and treated as confirmation that write failures were now surfaced to the UI.
+**Result Summary:** Continued diagnosis; later patches deployed for auth/token handling and timer write error surfacing.
+
+## Entry 113
+**Prompt:**
+```text
+Still do not work.  One additional strange thing.  I was able to change the timer between transitioning and sleep.  Even though I do see the same 404 error showing up in the Network requests.  I however, cannot activate any tasks.  So at least one POST is having some effect recorded in the database.
+```
+**Action:** Traced timer vs task activation code paths; determined timer UI was optimistic and not checking DB errors.
+**Result Summary:** Implemented timer transition error checking and surfaced errors in UI (deployment ids not captured in reconstructed entry).
+
+## Entry 114
+**Prompt:**
+```text
+never mind.  There must be some caching going on to make the transition between different status seemed to work.  After I refresh, the time went to back to show the current active task is planning, and the change was not effective.
+```
+**Action:** Implemented non-optimistic timer transitions: only update local state on successful DB writes; display write error in TimerBar.
+**Result Summary:** Deployed timer error handling improvements (deployment ids not captured in reconstructed entry).
+
+## Entry 115
+**Prompt:**
+```text
+OK.  Now changing timer also show 404.  Now tell me how my app actually work.  Do we actually have a backend?  Or we somehow are writing directly into the database from our frontend?
+```
+**Action:** Explained architecture: static frontend + InsForge BaaS backend (Auth + PostgREST-style DB API) and that the browser calls InsForge APIs directly.
+**Result Summary:** Architecture clarified; distinguished InsForge backend from any custom backend service.
+
+## Entry 116
+**Prompt:**
+```text
+So this means, if we really want to verify this is indeed an InsForge bug, we could write a make a direct SQL call to see if write to db is not working.  This remind me that, at the beginning, I did not like that Stored Procesures were created in DB to do DMLs.  Which was a mistake on my side as I thought business logic should be in the API.  SInce we only have generic DB APIs, have stored procedure in the db is actually better than having them in the Frontend code.  Maybe we should change it back to how the API is ment to be used and move some of the business logic of updating db into the DB?
+```
+**Action:** Discussed why admin SQL doesn’t validate the same failure mode as InsForge HTTP+JWT+RLS, and suggested RPC as a better probe; discussed tradeoffs of moving multi-step logic into DB functions.
+**Result Summary:** Recommended using RPC as diagnostic; identified timer transition as strong candidate for DB-side transaction.
+
+## Entry 117
+**Prompt:**
+```text
+For our failed POSTs, are there any one, if we changed to Stored Procedure, MIGHT give us a better change of being successful?  I remember there ere some Stored Procedures which does some reads and then writes which we moved to the front end.  But if our operations are already simple enough, then maybe we should wait to see if InsForge fixes this itself, given this was working before.
+```
+**Action:** Advised RPC might bypass a records-route-only bug, but not broader routing/auth/service issues; suggested timer transition as best RPC candidate.
+**Result Summary:** Decided to wait and recheck later.
+
+## Entry 118
+**Prompt:**
+```text
+I will wait some time then.
+```
+**Action:** Logged and paused further changes at that time.
+**Result Summary:** No changes for this prompt.
+
+## Entry 119
+**Prompt:**
+```text
+<environment_context>
+  <shell>zsh</shell>
+  <current_date>2026-04-23</current_date>
+  <timezone>America/Los_Angeles</timezone>
+</environment_context>
+```
+**Action:** Logged environment context change.
+**Result Summary:** No code changes.
+
+## Entry 120
+**Prompt:**
+```text
+Change the feature so that when all subtasks are marked as completed, DO NOT mark the parent task as completed.
+```
+**Action:** Searched the planner app codepaths for any "auto-complete parent when last child is done" behavior. The current implementation does not cascade completion to parents; it only enables the "Mark done" button when children are done, but does not auto-mark the parent.
+**Result Summary:** No code changes required for the planner app (no auto-complete-parent behavior was found in the current codebase).
+
+## Entry 121
+**Prompt:**
+```text
+<turn_aborted>
+The user interrupted the previous turn on purpose. Any running unified exec processes may still be running in the background. If any tools/commands were aborted, they may have partially executed.
+</turn_aborted>
+```
+**Action:** Logged the aborted turn marker.
+**Result Summary:** No code changes.
+
+## Entry 122
+**Prompt:**
+```text
+<environment_context>
+  <shell>zsh</shell>
+  <current_date>2026-04-25</current_date>
+  <timezone>America/Los_Angeles</timezone>
+</environment_context>
+```
+**Action:** Logged environment context change.
+**Result Summary:** No code changes.
+
+## Entry 123
+**Prompt:**
+```text
+In a shuffle, which turned out to be a case where the SDK and services have been updated but my app is behind, I lost a feature.  Please re-do the feature where the task will display the title in one line, and all the buttons etc. on another line to give the title more space.
+```
+**Action:** Restored the two-line task row layout in the Planner by updating `TaskRow.jsx` so the title is on its own line (wrapping instead of truncating) and actions render on a second line.
+**Result Summary:** Deployed to https://kgcw84it.insforge.site (Deployment ID: 20926564-8f05-42b9-898f-3c6689eedbd5).
+
+## Entry 124
+**Prompt:**
+```text
+Please create.  Duplicates are not a big deal comparing to loss journals.
+```
+**Action:** Proceeded with journal reconstruction and append, accepting duplicates to avoid loss.
+**Result Summary:** Recovery batch appended; journaling unblocked.
+
+## Entry 125
+**Prompt:**
+```text
+Now a task with all its subtasks marked as complete does not show complete button itself.  Change it so a task with all its substasks completed have the button to mark it as completed.
+```
+
+**Action:** Logged the prompt and updated status helpers so subtasks with status `Completed` are treated the same as `Done` when computing unfinished child counts and eligibility to mark a parent task done.
+
+**Result Summary:** Deployed to https://kgcw84it.insforge.site (Deployment ID: 57c55b00-85c8-49a2-86bb-6e01db3708be). Parent tasks whose children are all `Done`/`Completed` should now show the "Mark done" button.
+
+## Entry 126
+**Prompt:**
+```text
+"I’m going to treat this as a status-value mismatch: if subtasks are now stored as “Completed” instead of “Done”, our “unfinished” count never hits zero. I’ll update the status helpers so “Completed” is treated as done everywhere, then redeploy."  It is ok as it was.  If subtasks are not all DONE, the parent should not have this button displayed.  When they are all done, the parent will stay as open, but this button will show.  One can then mark it as done.  This will force the process that one must mark all sub tasks as DONE, then mark the parent as done.  I want to enforce this process without out auto update.
+```
+
+**Action:** Logged the clarification and verified the intended behavior: do not auto-mark the parent as done; only display the parent’s "Mark done" button once all subtasks are in a done state.
+
+**Result Summary:** No additional code changes needed; the current UI already enforces the manual parent-completion step and does not auto-update parent status.
+
+## Entry 127
+**Prompt:**
+```text
+Add a feature such that, if one add a sub task to a parent task, and parent task was marked as done, change it back to InProgress.
+```
+
+**Action:** Logged the prompt and began implementing: when creating a subtask (or indenting a task under a parent), if the parent’s current status is `Done` (or equivalent), automatically update the parent status back to `In Progress`.
+
+**Result Summary:** Implemented best-effort parent reopen in `useTasks`: after creating a subtask (and after indenting under a parent), if the parent is currently `Done`/`Completed`, update it to `In Progress`. Deployed to https://kgcw84it.insforge.site (Deployment ID: b687526f-a515-488e-8307-d1f1b37c0952).
+
+## Entry 128
+**Prompt:**
+```text
+There is a video and picture in Writing/RunningImpressions/2026-10-25.  Create a video with music of the video file and the picture.
+```
+
+**Action:** Logged the prompt and began implementation: locate the referenced media files, then use a local video toolchain (ffmpeg) to produce a combined video including the original clip plus a still-image segment, with background music if an audio file is available.
+
+**Result Summary:** Located the files under `/Users/zhian/Projects/attention/Writing/RunningImpressions/2026-10-25` and rendered a combined montage video to `/tmp/RunningImpressions-2026-10-25-montage.mp4` (uses the `.mov` audio as the music bed and appends a still-image segment from the `.HEIC`).
+
+## Entry 129
+**Prompt:**
+```text
+Move it please.
+```
+
+**Action:** Logged the prompt and prepared to move `/tmp/RunningImpressions-2026-10-25-montage.mp4` into `/Users/zhian/Projects/attention/Writing/RunningImpressions/2026-10-25/`.
+
+**Result Summary:** Moved the montage video to `/Users/zhian/Projects/attention/Writing/RunningImpressions/2026-10-25/RunningImpressions-2026-10-25-montage.mp4`.

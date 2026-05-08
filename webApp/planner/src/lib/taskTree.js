@@ -2,8 +2,12 @@ export function isAdmin(roles) {
   return Array.isArray(roles) && roles.includes('admin');
 }
 
+export function isDoneStatus(status) {
+  return status === 'Done' || status === 'Completed';
+}
+
 export function isDone(task) {
-  return task.status === 'Done';
+  return isDoneStatus(task.status);
 }
 
 export function isContinuous(task) {
@@ -12,7 +16,7 @@ export function isContinuous(task) {
 
 export function countChildren(children) {
   const total = children.length;
-  const unfinished = children.filter(c => c.status !== 'Done').length;
+  const unfinished = children.filter(c => !isDoneStatus(c.status)).length;
   return { total, unfinished };
 }
 
@@ -23,7 +27,7 @@ export function canSoftDelete(activeChildren) {
 export function canMarkDone(task, children) {
   if (isDone(task) || isContinuous(task)) return false;
   if (children.length === 0) return true;
-  return children.every(c => c.status === 'Done');
+  return children.every(c => isDoneStatus(c.status));
 }
 
 export function joinUsersWithRoles(profiles, roles) {
@@ -61,7 +65,7 @@ export function findFirstNonDoneLeaf(taskId, childrenMap) {
   for (const child of children) {
     const grandChildren = childrenMap.get(child.id) || [];
     if (grandChildren.length === 0) {
-      if (child.status !== 'Done') return child;
+      if (!isDoneStatus(child.status)) return child;
       continue;
     }
     const result = findFirstNonDoneLeaf(child.id, childrenMap);
