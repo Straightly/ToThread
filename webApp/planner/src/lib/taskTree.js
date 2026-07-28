@@ -74,6 +74,19 @@ export function findFirstNonDoneLeaf(taskId, childrenMap) {
   return null;
 }
 
+export function findFirstNonDonePath(taskId, childrenMap) {
+  const children = childrenMap.get(taskId) || [];
+  for (const child of children) {
+    const descendantPath = findFirstNonDonePath(child.id, childrenMap);
+    if (!isDoneStatus(child.status)) {
+      if (descendantPath.length > 0) return [child, ...descendantPath];
+      return [child];
+    }
+    if (descendantPath.length > 0) return descendantPath;
+  }
+  return [];
+}
+
 export function computeTodoTasks(tasks, taskMap, childrenMap) {
   const todoIds = new Set();
   for (const task of tasks) {
@@ -81,8 +94,11 @@ export function computeTodoTasks(tasks, taskMap, childrenMap) {
       todoIds.add(task.id);
     }
     if (isContinuous(task)) {
-      const leaf = findFirstNonDoneLeaf(task.id, childrenMap);
-      if (leaf) todoIds.add(leaf.id);
+      todoIds.add(task.id);
+      const path = findFirstNonDonePath(task.id, childrenMap);
+      for (const pathTask of path) {
+        todoIds.add(pathTask.id);
+      }
     }
   }
   // Return in DFS order (matches planner hierarchy traversal)

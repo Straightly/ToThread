@@ -51,3 +51,41 @@ I was there and there is no such project.  All I can see is the "My First Projec
 ```
 **Action:** Explained likely reasons the Google Cloud project that owns the OAuth client IDs is not visible under the current signed-in account and gave concrete ways to locate the owning project or confirm deletion/ownership.
 **Result Summary:** Provided troubleshooting steps (account mismatch vs deleted project vs permissions/org) and next actions to recover or recreate credentials.
+
+## Entry 7
+**Prompt:**
+```text
+<environment_context>
+  <shell>zsh</shell>
+  <current_date>2026-05-15</current_date>
+  <timezone>America/Los_Angeles</timezone>
+</environment_context>
+```
+**Action:** Logged updated environment context.
+**Result Summary:** Environment context recorded.
+
+## Entry 8
+**Prompt:**
+```text
+In the current import, if a task already exists, it is skipped.  Please change the behavior so that an existing substasks will be updated and modified.  In particular, if subtasks are added to the task, the subtasks should be added too.  If new task is missing id, it should be added with a newly generated id. etc.
+```
+**Action:** Locate the task import implementation and change it from “skip existing” to “upsert/update tasks and recursively sync subtasks”, generating missing IDs as needed.
+**Result Summary:** Updated `/Users/zhian/Projects/ToThread/webApp/planner/src/lib/importTask.js` so import updates existing tasks (by UUID) instead of skipping them and recursively imports/updates subtasks, appending new children after existing children.
+
+## Entry 9
+**Prompt:**
+```text
+I got ◑  Uploading 52 filesError: Failed to upload deployment file
+■  Canceled
+```
+**Action:** Investigate likely causes of InsForge CLI deployment upload failures and provide a minimal troubleshooting/next-command sequence.
+**Result Summary:** Deployment succeeded by using `@insforge/cli@0.1.39` and deploying the planner project directory (not `dist`). Live at https://kgcw84it.insforge.site (Deployment ID: 1bd67d36-2015-40af-bc11-26de392ddcf9).
+## 2026-05-15 11:44 PDT
+**Prompt:**
+```text
+I tried to input the updated project plan into my tool developed under ToThread.  The Marketing task inputted fine, but the subtasks for Establish The Oriented Corporation did not get imported.  Could it be because they were supposed to be in the subtasks as an array?  This may mean the export of that tool is also broken as it seemed it export subtasks without putting them in array either.
+```
+
+**Action:** Inspect the ToThread import/export code paths for project plans and compare them against the YAML structure used in `ConsultingBusiness/consulting.yaml`, focusing on how nested tasks/subtasks are serialized and parsed.
+
+**Result Summary:** Confirmed that the planner import/export code uses `tasks`, not `subtasks`, and the export path is writing nested arrays correctly. The likely cause of `Marketing` importing while the corporation subtasks did not is the importer's duplicate-ID behavior: if a parent task UUID already exists, the importer skips that entire subtree instead of descending into it and importing missing children. Also found a separate bug in the older iOS/shared-app YAML parser: it does not handle top-level raw-array YAML files correctly.

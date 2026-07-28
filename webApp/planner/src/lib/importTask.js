@@ -100,7 +100,7 @@ async function getMaxPosition(insforge, userId, parentId) {
  * @param {object} insforge - InsForge client instance
  * @param {string} userId - Current user's UUID
  * @param {string|null} rootParentId - Parent ID at current navigation level (null = root)
- * @returns {{ importedCount: number }}
+ * @returns {{ importedCount: number, updatedCount: number }}
  */
 export async function importTasksFromYaml(yamlString, insforge, userId, rootParentId) {
   const taskNodes = parseYamlTasks(yamlString);
@@ -111,17 +111,13 @@ export async function importTasksFromYaml(yamlString, insforge, userId, rootPare
   const maxPos = await getMaxPosition(insforge, userId, rootParentId);
 
   let importedCount = 0;
+  let updatedCount = 0;
 
   async function insertRecursive(nodes, parentId, positionOffset) {
     let pos = positionOffset + 1;
 
     for (const node of nodes) {
       const { standard, customFields, children } = separateFields(node);
-
-      // Skip entire subtree if this task's UUID already exists
-      if (isValidUuid(standard.id) && existingIds.has(standard.id)) {
-        continue;
-      }
 
       // Normalize tags
       let tags = standard.tags || null;
@@ -131,44 +127,74 @@ export async function importTasksFromYaml(yamlString, insforge, userId, rootPare
 
       const row = {
         user_id: userId,
-        parent_id: parentId,
         title: standard.title || 'Untitled',
         status: standard.status || 'Pending',
-        position: pos,
         description: standard.description || null,
         result: standard.result || null,
         tags,
         custom_fields: Object.keys(customFields).length > 0 ? customFields : {},
+        // If this task existed but was soft-deleted, importing should restore it.
+        deleted_at: null,
       };
 
-      // Preserve valid UUID if it doesn't already exist
-      if (isValidUuid(standard.id)) {
-        row.id = standard.id;
+      const hasValidId = isValidUuid(standard.id);
+
+      let taskId = null;
+
+      if (hasValidId && existingIds.has(standard.id)) {
+        // Update existing task instead of skipping; keep parent/position unchanged.
+        const { data, error } = await insforge.database
+          .from('tasks')
+          .update(row)
+          .eq('user_id', userId)
+          .eq('id', standard.id)
+          .select('id');
+
+        if (!error && data && data.length > 0) {
+          taskId = data[0].id;
+          updatedCount++;
+        } else {
+          // Silent skip on update failure
+          continue;
+        }
+      } else {
+        // Insert new task; assign correct parent/position within this import context.
+        const insertRow = {
+          ...row,
+          parent_id: parentId,
+          position: pos,
+        };
+
+        // Preserve valid UUID if it doesn't already exist
+        if (hasValidId) {
+          insertRow.id = standard.id;
+        }
+
+        const { data, error } = await insforge.database
+          .from('tasks')
+          .insert([insertRow])
+          .select('id');
+
+        if (error || !data || data.length === 0) {
+          // Silent skip on insert failure
+          continue;
+        }
+
+        taskId = data[0].id;
+        existingIds.add(taskId);
+        pos++;
+        importedCount++;
       }
 
-      const { data, error } = await insforge.database
-        .from('tasks')
-        .insert([row])
-        .select('id');
-
-      if (error || !data || data.length === 0) {
-        // Silent skip on insert failure
-        continue;
-      }
-
-      const insertedId = data[0].id;
-      existingIds.add(insertedId);
-      pos++;
-      importedCount++;
-
-      // Recurse into children
+      // Recurse into children (append after existing children if any)
       if (children.length > 0) {
-        await insertRecursive(children, insertedId, -1);
+        const childMaxPos = await getMaxPosition(insforge, userId, taskId);
+        await insertRecursive(children, taskId, childMaxPos);
       }
     }
   }
 
   await insertRecursive(taskNodes, rootParentId, maxPos);
 
-  return { importedCount };
+  return { importedCount, updatedCount };
 }

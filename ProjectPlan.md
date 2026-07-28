@@ -773,4 +773,5 @@ Enhanced project/task management system.
 ## Appendix — Related Plans in This Repo
 
 - `webApp/planner-plan.md` — InsForge-backed planner web app plan.
+- `Planner-PlanningLoop-Phase1.md` — Phase 1 decision package for the planner’s overall-plan, daily-plan, time-budget, and review loop model.
 - `InsForge-SDK-Service-ContractTests-Plan.md` — Record/replay contract test suite plan for verifying the InsForge `@insforge/sdk` ↔ service HTTP interface.

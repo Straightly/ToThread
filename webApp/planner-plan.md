@@ -4,6 +4,8 @@
 
 The existing ToThread project at `/Users/zhian/Projects/ToThread/` has a project management backend (`webApp/backend/lib/plan.js`) that stores hierarchical tasks as YAML files in a Gitea Git repository, with a Cloudflare Workers API layer. The iOS app (`ios/.../Script.js`) provides a full task management UI with drill-down navigation, swipe gestures, task detail editing, and subtask badges. The web client currently has NO project management UI.
 
+**Related design baseline:** `Planner-PlanningLoop-Phase1.md` defines the current planning-model decision package for overall plans, project plans, daily plans, time budgeting, and review workflows on top of this planner.
+
 **Goal**: Build a new, separate web application within the same repo that replicates all existing project management features, backed by InsForge database tables instead of YAML/Git. The app must support admin and regular user roles.
 
 ## Design Principles

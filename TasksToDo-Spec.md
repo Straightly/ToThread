@@ -10,12 +10,13 @@ The user wants a new "Tasks To Do" page as the default landing page for regular 
 2. **PlannerPage** moves to `/planner`
 3. A task qualifies as "todo" if EITHER:
    - Tagged with `#Todo` in its `tags` TEXT[] array (case-sensitive), OR
-   - It is the **first non-Done leaf** (DFS by position) within a Continuous task's full subtree
+   - It is a Continuous task, OR
+   - It is on the **top unfinished recursive path** (DFS by position) under a Continuous task
 4. Each todo task shows a **parent chain breadcrumb** above it
 5. Same row features as PlannerPage: status badge, subtask badge, navigate arrow, mark done, delete with confirm, detail overlay, swipe gestures
 6. **No drag-and-drop** reordering
 7. Navigate arrow goes to **PlannerPage** focused at the task's parent level (via router state)
-8. Marking Done: `#Todo`-tagged tasks stay visible (strikethrough); Continuous leaves advance to next leaf
+8. Marking Done: `#Todo`-tagged tasks stay visible (strikethrough); Continuous tasks advance to the next recursive unfinished path
 
 ## Implementation Plan
 
@@ -26,7 +27,8 @@ Add 5 new exported pure functions (append to existing file):
 - **`buildTaskMap(tasks)`** - Returns `Map<id, task>` for O(1) lookup
 - **`buildChildrenMap(tasks)`** - Returns `Map<parentId|null, task[]>` with children sorted by position
 - **`findFirstNonDoneLeaf(taskId, childrenMap)`** - DFS traversal finding first leaf (no children) that isn't Done. Returns task or null
-- **`computeTodoTasks(tasks, taskMap, childrenMap)`** - Collects qualifying tasks via Set (tag check + Continuous leaf scan), returns task array
+- **`findFirstNonDonePath(taskId, childrenMap)`** - DFS traversal returning the first unfinished recursive path under a task, one task per level
+- **`computeTodoTasks(tasks, taskMap, childrenMap)`** - Collects qualifying tasks via Set (tag check + Continuous task + Continuous top-path scan), returns task array
 - **`buildParentChain(taskId, taskMap)`** - Walks parent_id chain upward, returns `[{id, title}]` from root down (excludes the task itself). Includes maxDepth=100 safety guard
 
 ### Step 2: Create `src/hooks/useTodoTasks.js`
@@ -107,9 +109,10 @@ All paths relative to `webApp/planner/`:
 3. Manual test:
    - Login as regular user -> lands on TodoPage
    - Tasks tagged `#Todo` appear with breadcrumbs
-   - First non-Done leaves of Continuous tasks appear
+   - Continuous tasks themselves appear
+   - The first unfinished recursive path under each Continuous task appears
    - Navigate arrow goes to PlannerPage at correct level
-   - Mark done works (tag-based stay visible, Continuous advance)
+   - Mark done works (tag-based stay visible, Continuous paths advance)
    - Delete works with confirmation
    - Detail overlay opens and saves
    - AppShell "To Do" and "Planner" links work with active highlighting
