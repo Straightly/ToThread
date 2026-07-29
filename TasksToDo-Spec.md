@@ -10,8 +10,8 @@ The user wants a new "Tasks To Do" page as the default landing page for regular 
 2. **PlannerPage** moves to `/planner`
 3. A task qualifies as "todo" if EITHER:
    - Tagged with `#Todo` in its `tags` TEXT[] array (case-sensitive), OR
-   - It is the **deepest displayed task** on the top unfinished recursive path (DFS by position) under a Continuous task, OR
-   - It is a Continuous task with no displayed child task
+   - It is a Continuous task at any level of the hierarchy, OR
+   - It is the **deepest displayed task** on the top unfinished recursive path (DFS by position) under a Continuous task
 4. Each todo task shows a **parent chain breadcrumb** above it
 5. Same row features as PlannerPage: status badge, subtask badge, navigate arrow, mark done, delete with confirm, detail overlay, swipe gestures
 6. **No drag-and-drop** reordering
@@ -33,7 +33,7 @@ Add 5 new exported pure functions (append to existing file):
 - **`buildChildrenMap(tasks)`** - Returns `Map<parentId|null, task[]>` with children sorted by position
 - **`findFirstNonDoneLeaf(taskId, childrenMap)`** - DFS traversal finding first leaf (no children) that isn't Done. Returns task or null
 - **`findFirstNonDonePath(taskId, childrenMap)`** - DFS traversal returning the first unfinished recursive path under a task, one task per level
-- **`computeTodoTasks(tasks, taskMap, childrenMap)`** - Collects qualifying tasks via Set (tag check + deepest displayed Continuous-path task), returns task array
+- **`computeTodoTasks(tasks, taskMap, childrenMap)`** - Collects qualifying tasks via Set (tag check + every Continuous task + deepest displayed Continuous-path task), returns task array
 - **`buildParentChain(taskId, taskMap)`** - Walks parent_id chain upward, returns `[{id, title}]` from root down (excludes the task itself). Includes maxDepth=100 safety guard
 
 ### Step 2: Create `src/hooks/useTodoTasks.js`
@@ -117,8 +117,8 @@ All paths relative to `webApp/planner/`:
 3. Manual test:
    - Login as regular user -> lands on TodoPage
    - Tasks tagged `#Todo` appear with breadcrumbs
-   - If a Continuous task has no displayed child, the Continuous task itself appears
-   - Otherwise only the deepest displayed task on the first unfinished recursive path appears, with ancestors shown in the breadcrumb
+   - Every Continuous task appears, including Continuous tasks nested under other projects
+   - The deepest displayed task on each Continuous task's first unfinished recursive path also appears, with ancestors shown in the breadcrumb
    - Navigate arrow goes to PlannerPage at correct level
    - Mark done works (tag-based stay visible, Continuous displayed task advances)
    - `Misc Todos` appears only as the bottom section heading

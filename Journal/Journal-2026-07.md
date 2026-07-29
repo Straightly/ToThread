@@ -108,3 +108,27 @@ Make an exception to Misc Todos.  On the display of todo, move it to a section o
 ```
 **Action:** Inspect and update the Todo derivation/rendering so `Misc Todos` is excluded from the normal list and rendered as a dedicated bottom section containing all of its subtasks.
 **Result Summary:** Implemented the `Misc Todos` exception. The Todo page now removes the matching task and its subtree from the normal results, renders `Misc Todos` as a dedicated bottom section, and shows every non-deleted descendant there in depth-first position order, including completed tasks. Nested breadcrumbs are relative to the `Misc Todos` root. Updated `TasksToDo-Spec.md`; the representative tree check and changed-file ESLint check passed, and the production build succeeded. The full-project lint still reports eight pre-existing errors and one warning in unrelated files.
+
+## Entry 9
+**Prompt:**
+```text
+I commited the change.  How do I deploy frontend code?
+```
+**Action:** Verify the planner project's current InsForge frontend deployment configuration and provide the exact build and deployment commands.
+**Result Summary:** Verified that `webApp/planner` contains the linked InsForge project configuration and the SPA routing configuration. Provided the repository-specific workflow: change into `webApp/planner`, run `npm run build`, then deploy the planner project directory with the InsForge CLI. Also noted the pinned CLI version previously proven to work for this application and the production URL to verify afterward.
+
+## Entry 10
+**Prompt:**
+```text
+it is the same as the backend?
+```
+**Action:** Clarify whether the InsForge frontend deployment command also deploys the backend and explain the separate deployment paths.
+**Result Summary:** Clarified that `deployments deploy .` only deploys the planner frontend to InsForge hosting. The managed InsForge database/auth backend is separate, while schema changes and edge functions require their own CLI commands.
+
+## Entry 11
+**Prompt:**
+```text
+I want to have every continuous tasks displayed, whether or not it is a top task or not.
+```
+**Action:** Inspect and update the Todo derivation so every task marked `Continuous` contributes a visible Todo entry regardless of its depth in the project hierarchy, while preserving the intended active-path display behavior.
+**Result Summary:** Updated the Todo derivation so every task whose status is `Continuous` appears as its own Todo row regardless of hierarchy depth. The deepest unfinished item on each Continuous task's active path remains visible as an actionable row. Updated `TasksToDo-Spec.md`; a focused nested-Continuous hierarchy check, changed-file ESLint, `git diff --check`, and the production build all passed. The change has not been deployed.
