@@ -94,11 +94,9 @@ export function computeTodoTasks(tasks, taskMap, childrenMap) {
       todoIds.add(task.id);
     }
     if (isContinuous(task)) {
-      todoIds.add(task.id);
       const path = findFirstNonDonePath(task.id, childrenMap);
-      for (const pathTask of path) {
-        todoIds.add(pathTask.id);
-      }
+      const displayTask = path[path.length - 1] || task;
+      todoIds.add(displayTask.id);
     }
   }
   // Return in DFS order (matches planner hierarchy traversal)
