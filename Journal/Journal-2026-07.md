@@ -46,3 +46,65 @@ I did not see any code in git status.  How come?
 ```
 **Action:** Check the current git status after the latest Todo logic change and explain why the user may not be seeing code changes in their own terminal output.
 **Result Summary:** Confirmed there are still code changes in the working tree: `TasksToDo-Spec.md` and `webApp/planner/src/lib/taskTree.js`, plus untracked journal/design docs. The user likely ran `git status` from a different repository/subdirectory context, or after only looking at staged changes rather than all working-tree changes.
+
+## Entry 7
+**Prompt:**
+```text
+# AGENTS.md instructions
+
+<INSTRUCTIONS>
+These AGENTS.md instructions replace all previously provided AGENTS.md instructions.
+
+Always journal ALL user prompts (priority #1: never lose work).
+
+Critical requirement: Make sure all prompts from the user are journalled. If journalling fails for whatever reason, stop and ask the user what to do. Do not proceed with other work until journalling is resolved.
+
+## What to log (every prompt)
+For each user prompt, append to the selected journal file:
+- **Prompt:** the prompt verbatim in a fenced code block
+- **Action:** what Codex did (or plans to do if blocked)
+- **Result Summary:** outcome / what changed
+
+## Where to log (priority #2: lowest project journal)
+Write to the *lowest* (most specific) project journal available.
+
+Selection algorithm:
+1. Determine referenced paths:
+   - any repo/workspace paths explicitly mentioned in the prompt
+   - the current working directory (CWD)
+2. For each referenced path, walk upward toward the workspace/project root.
+   - If the workspace is a git repo, treat the git root as the project root.
+   - Otherwise treat the filesystem root of the workspace as the project root.
+3. While walking upward, collect any directories that contain a `Journal/` folder.
+4. Choose the deepest matching `Journal/` folder (longest path). This is the “lowest project journal”.
+5. Append to its monthly journal file: `Journal/Journal-YYYY-MM.md`.
+
+## Fallback behavior (no silent creation)
+If no `Journal/` folder exists anywhere from the deepest referenced path up to the project root:
+- Do NOT silently create one.
+- Offer to create a `Journal/` folder and present choices of directories from the deepest referenced directory up to the project root.
+- Only create the `Journal/` folder after the user chooses a directory.
+
+## Non-negotiable
+If journaling is blocked (missing journal path, ambiguity, permissions), stop and resolve journaling first.
+
+## Response hygiene
+Do not append routine suggestions or “If you want, I can…”. Only surface suggestions when they are materially important (risk, tradeoff, or a missing step that could cause failure).
+</INSTRUCTIONS><environment_context>
+  <cwd>/Users/zhian/Projects/ToThread</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-07-28</current_date>
+  <timezone>America/Los_Angeles</timezone>
+  <filesystem><workspace_roots><root>/Users/zhian/Projects/ToThread</root><root>/Users/zhian/.codex/visualizations/2026/04/05/019d5c40-fdd1-78f1-8383-3f729f64dcaa</root></workspace_roots><permission_profile type="managed"><file_system type="restricted"><entry access="read"><special>:root</special></entry><entry access="write"><path>/Users/zhian/Projects/ToThread</path></entry><entry access="write"><path>/Users/zhian/.codex/visualizations/2026/04/05/019d5c40-fdd1-78f1-8383-3f729f64dcaa</path></entry><entry access="write"><special>:slash_tmp</special></entry><entry access="write"><special>:tmpdir</special></entry><entry access="read"><path>/Users/zhian/Projects/ToThread/.git</path></entry><entry access="read"><path>/Users/zhian/.codex/visualizations/2026/04/05/019d5c40-fdd1-78f1-8383-3f729f64dcaa/.git</path></entry><entry access="read"><path>/Users/zhian/Projects/ToThread/.agents</path></entry><entry access="read"><path>/Users/zhian/.codex/visualizations/2026/04/05/019d5c40-fdd1-78f1-8383-3f729f64dcaa/.agents</path></entry><entry access="read"><path>/Users/zhian/Projects/ToThread/.codex</path></entry><entry access="read"><path>/Users/zhian/.codex/visualizations/2026/04/05/019d5c40-fdd1-78f1-8383-3f729f64dcaa/.codex</path></entry></file_system></permission_profile></filesystem>
+</environment_context>
+```
+**Action:** Replaced prior AGENTS.md handling with these journaling and response-hygiene instructions; verified the lowest project journal is `Journal/Journal-2026-07.md`.
+**Result Summary:** Instructions recorded and applied for this and subsequent prompts.
+
+## Entry 8
+**Prompt:**
+```text
+Make an exception to Misc Todos.  On the display of todo, move it to a section of itself at the bottom and always show ALL its subtasks in that section.
+```
+**Action:** Inspect and update the Todo derivation/rendering so `Misc Todos` is excluded from the normal list and rendered as a dedicated bottom section containing all of its subtasks.
+**Result Summary:** Implemented the `Misc Todos` exception. The Todo page now removes the matching task and its subtree from the normal results, renders `Misc Todos` as a dedicated bottom section, and shows every non-deleted descendant there in depth-first position order, including completed tasks. Nested breadcrumbs are relative to the `Misc Todos` root. Updated `TasksToDo-Spec.md`; the representative tree check and changed-file ESLint check passed, and the production build succeeded. The full-project lint still reports eight pre-existing errors and one warning in unrelated files.

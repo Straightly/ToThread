@@ -17,6 +17,11 @@ The user wants a new "Tasks To Do" page as the default landing page for regular 
 6. **No drag-and-drop** reordering
 7. Navigate arrow goes to **PlannerPage** focused at the task's parent level (via router state)
 8. Marking Done: `#Todo`-tagged tasks stay visible (strikethrough); Continuous tasks advance to the next recursive unfinished path
+9. **`Misc Todos` exception**:
+   - Remove the `Misc Todos` task and its entire subtree from the normal Todo results
+   - Render `Misc Todos` as a dedicated section at the bottom of the page
+   - Always show every active descendant in that section, including Done tasks, in DFS/position order
+   - Show breadcrumbs relative to the `Misc Todos` root for nested descendants
 
 ## Implementation Plan
 
@@ -36,7 +41,9 @@ Add 5 new exported pure functions (append to existing file):
 New hook that fetches ALL user tasks in one query (no parent_id filter), then computes derived state client-side.
 
 - **State**: `allTasks`, `loading`, `error`
-- **Derived** (via useMemo): `todoItems` array of `{ task, parentChain, childCount }` objects
+- **Derived** (via useMemo):
+  - `todoItems` array of normal qualifying `{ task, parentChain, childCount }` objects
+  - `miscTodosTask` plus `miscTodoItems` containing every descendant of the `Misc Todos` task
 - **Operations**: `fetchAllTasks()`, `markDone(taskId)`, `softDeleteTask(taskId)`, `getTaskById(taskId)`, `updateTask(taskId, fields)`
 - Each mutation calls `fetchAllTasks()` after success to re-derive the todo list
 
@@ -56,6 +63,7 @@ Simple list component (no DndContext/SortableContext).
 - **Props**: `todoItems`, `loading`, `onNavigateToPlanner`, `onMarkDone`, `onDelete`, `onOpenDetail`
 - Empty state: "No tasks to do." with link to Planner
 - Maps `todoItems` to `<TodoTaskRow>`
+- Renders `Misc Todos` as a separate bottom section and maps all descendants to `<TodoTaskRow>`
 
 ### Step 5: Create `src/pages/TodoPage.jsx`
 
@@ -113,6 +121,8 @@ All paths relative to `webApp/planner/`:
    - Otherwise only the deepest displayed task on the first unfinished recursive path appears, with ancestors shown in the breadcrumb
    - Navigate arrow goes to PlannerPage at correct level
    - Mark done works (tag-based stay visible, Continuous displayed task advances)
+   - `Misc Todos` appears only as the bottom section heading
+   - All active descendants of `Misc Todos`, including Done tasks, appear in hierarchy order without duplicates in the normal list
    - Delete works with confirmation
    - Detail overlay opens and saves
    - AppShell "To Do" and "Planner" links work with active highlighting

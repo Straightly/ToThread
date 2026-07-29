@@ -111,6 +111,38 @@ export function computeTodoTasks(tasks, taskMap, childrenMap) {
   return ordered;
 }
 
+export function findTaskByTitle(tasks, childrenMap, title) {
+  const normalizedTitle = String(title || '').trim().toLowerCase();
+  if (!normalizedTitle) return null;
+
+  let match = null;
+  (function dfs(parentId) {
+    for (const child of (childrenMap.get(parentId) || [])) {
+      if (String(child.title || '').trim().toLowerCase() === normalizedTitle) {
+        match = child;
+        return;
+      }
+      dfs(child.id);
+      if (match) return;
+    }
+  })(null);
+
+  return match || tasks.find(task =>
+    String(task.title || '').trim().toLowerCase() === normalizedTitle
+  ) || null;
+}
+
+export function collectDescendants(taskId, childrenMap) {
+  const descendants = [];
+  (function dfs(parentId) {
+    for (const child of (childrenMap.get(parentId) || [])) {
+      descendants.push(child);
+      dfs(child.id);
+    }
+  })(taskId);
+  return descendants;
+}
+
 export function buildParentChain(taskId, taskMap) {
   const chain = [];
   let current = taskMap.get(taskId);

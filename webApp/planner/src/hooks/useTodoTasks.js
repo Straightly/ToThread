@@ -6,8 +6,12 @@ import {
   buildTaskMap,
   buildChildrenMap,
   computeTodoTasks,
+  findTaskByTitle,
+  collectDescendants,
   buildParentChain,
 } from '../lib/taskTree';
+
+const MISC_TODOS_TITLE = 'Misc Todos';
 
 export function useTodoTasks(userId) {
   const [allTasks, setAllTasks] = useState([]);
@@ -36,7 +40,19 @@ export function useTodoTasks(userId) {
 
   const taskMap = useMemo(() => buildTaskMap(allTasks), [allTasks]);
   const childrenMap = useMemo(() => buildChildrenMap(allTasks), [allTasks]);
-  const todoTasks = useMemo(() => computeTodoTasks(allTasks, taskMap, childrenMap), [allTasks, taskMap, childrenMap]);
+  const miscTodos = useMemo(() => {
+    const task = findTaskByTitle(allTasks, childrenMap, MISC_TODOS_TITLE);
+    const descendants = task ? collectDescendants(task.id, childrenMap) : [];
+    return {
+      task,
+      descendants,
+      subtreeIds: new Set(task ? [task.id, ...descendants.map(item => item.id)] : []),
+    };
+  }, [allTasks, childrenMap]);
+  const todoTasks = useMemo(() => {
+    return computeTodoTasks(allTasks, taskMap, childrenMap)
+      .filter(task => !miscTodos.subtreeIds.has(task.id));
+  }, [allTasks, taskMap, childrenMap, miscTodos]);
 
   const todoItems = useMemo(() => {
     return todoTasks.map(task => ({
@@ -45,6 +61,19 @@ export function useTodoTasks(userId) {
       childCount: countChildren(childrenMap.get(task.id) || []),
     }));
   }, [todoTasks, taskMap, childrenMap]);
+
+  const miscTodoItems = useMemo(() => {
+    if (!miscTodos.task) return [];
+    return miscTodos.descendants.map(task => {
+      const parentChain = buildParentChain(task.id, taskMap);
+      const miscRootIndex = parentChain.findIndex(parent => parent.id === miscTodos.task.id);
+      return {
+        task,
+        parentChain: miscRootIndex >= 0 ? parentChain.slice(miscRootIndex + 1) : parentChain,
+        childCount: countChildren(childrenMap.get(task.id) || []),
+      };
+    });
+  }, [miscTodos, taskMap, childrenMap]);
 
   const markDone = useCallback(async (taskId) => {
     const { error } = await insforge.database
@@ -97,6 +126,8 @@ export function useTodoTasks(userId) {
 
   return {
     todoItems,
+    miscTodosTask: miscTodos.task,
+    miscTodoItems,
     loading,
     error,
     fetchAllTasks,

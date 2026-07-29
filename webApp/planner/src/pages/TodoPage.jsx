@@ -10,7 +10,18 @@ import TaskDetailOverlay from '../components/tasks/TaskDetailOverlay';
 export default function TodoPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { todoItems, loading, error, fetchAllTasks, markDone, softDeleteTask, getTaskById, updateTask } = useTodoTasks(user?.id);
+  const {
+    todoItems,
+    miscTodosTask,
+    miscTodoItems,
+    loading,
+    error,
+    fetchAllTasks,
+    markDone,
+    softDeleteTask,
+    getTaskById,
+    updateTask,
+  } = useTodoTasks(user?.id);
 
   const [detailTask, setDetailTask] = useState(null);
   const [actionError, setActionError] = useState(null);
@@ -80,6 +91,8 @@ export default function TodoPage() {
 
         <TodoList
           todoItems={todoItems}
+          miscTodosTask={miscTodosTask}
+          miscTodoItems={miscTodoItems}
           loading={loading}
           onNavigateToPlanner={handleNavigateToPlanner}
           onMarkDone={handleMarkDone}
