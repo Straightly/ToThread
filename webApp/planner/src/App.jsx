@@ -1,14 +1,15 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TimerProvider } from './contexts/TimerContext';
 import { useAuth } from './hooks/useAuth';
 import { isAdmin } from './lib/taskTree';
-import LoginPage from './pages/LoginPage';
-import RoleSelectorPage from './pages/RoleSelectorPage';
-import PlannerPage from './pages/PlannerPage';
-import TodoPage from './pages/TodoPage';
-import TimePage from './pages/TimePage';
-import AdminDashboard from './pages/AdminDashboard';
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RoleSelectorPage = lazy(() => import('./pages/RoleSelectorPage'));
+const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const TodoPage = lazy(() => import('./pages/TodoPage'));
+const TimePage = lazy(() => import('./pages/TimePage'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -76,7 +77,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <TimerProvider>
-          <AppRoutes />
+          <Suspense fallback={<div role="status" className="min-h-screen flex items-center justify-center text-gray-400">Loading page...</div>}>
+            <AppRoutes />
+          </Suspense>
         </TimerProvider>
       </AuthProvider>
     </BrowserRouter>

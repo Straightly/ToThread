@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTasks } from '../hooks/useTasks';
-import { canMarkDone, isDone, isContinuous } from '../lib/taskTree';
+import { isDone } from '../lib/taskTree';
 import { buildTaskTrees, tasksToYaml, downloadYaml } from '../lib/exportTask';
 import { importTasksFromYaml } from '../lib/importTask';
 import insforge from '../insforge';
@@ -31,7 +31,7 @@ export default function PlannerPage() {
     if (location.state?.initialNavStack) {
       window.history.replaceState({}, '');
     }
-  }, []);
+  }, [location.state?.initialNavStack]);
 
   useEffect(() => {
     fetchTasks(currentParentId);

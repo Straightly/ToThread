@@ -1,4 +1,4 @@
-export default function NavBar({ navStack, onNavigateBack, onNavigateTo }) {
+export default function NavBar({ navStack, onNavigateTo }) {
   if (navStack.length === 0) return null;
 
   return (

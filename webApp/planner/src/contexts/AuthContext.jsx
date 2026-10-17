@@ -1,7 +1,6 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import insforge from '../insforge';
-
-export const AuthContext = createContext(null);
+import { AuthContext } from './authState';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -60,10 +59,10 @@ export function AuthProvider({ children }) {
     }
   }, [ensureProfile, fetchRoles]);
 
-  const loadSession = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.auth.getCurrentUser();
+  useEffect(() => {
+    let active = true;
+    insforge.auth.getCurrentUser().then(async ({ data, error }) => {
+      if (!active) return;
       if (error || !data?.user) {
         setUser(null);
         setRoles([]);
@@ -71,17 +70,15 @@ export function AuthProvider({ children }) {
         return;
       }
       await setupUser(data.user);
-    } catch (err) {
+    }).catch((err) => {
+      if (!active) return;
       console.error('Session load error:', err);
       setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, [setupUser]);
-
-  useEffect(() => {
-    loadSession();
-  }, [loadSession]);
 
   const signInWithGoogle = useCallback(async () => {
     await insforge.auth.signInWithOAuth('google', {

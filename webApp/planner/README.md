@@ -19,11 +19,9 @@ npm outdated
 The tests check YAML task import/export and the SDK OAuth/database request
 contracts using mocked requests; they do not access live user data.
 Before deploying, sign in and check task navigation, the Misc Todos Done
-toggle, task edits, YAML import/export, and timer controls. Existing lint
-findings in context/effect handling and unused imports were recorded during the
-upgrade. Follow the repository's [maintenance policy](../../AGENTS.md): resolve
-inexpensive existing issues during related work and document concrete blockers
-for anything that must remain.
+toggle, task edits, YAML import/export, and timer controls. Run `npm run lint` as well. Follow the repository's
+[maintenance policy](../../AGENTS.md): resolve inexpensive existing issues during
+related work and document concrete blockers for anything that must remain.
 
 Deploy the application source with `npx @insforge/cli deployments deploy .`.
 Keep `package.json` and `package-lock.json` together when committing upgrades.

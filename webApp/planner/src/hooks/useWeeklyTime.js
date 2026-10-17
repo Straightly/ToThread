@@ -17,36 +17,40 @@ export function useWeeklyTime(userId) {
   const weekEnd = useMemo(() => getWeekEnd(weekStart), [weekStart]);
   const weekStartISO = useMemo(() => weekStartToISO(weekStart), [weekStart]);
 
-  const fetchData = useCallback(async () => {
+  const loadData = useCallback(() => {
     if (!userId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      // Fetch all in parallel
-      const [tasksRes, entriesRes, budgetRes, allocRes] = await Promise.all([
-        insforge.database.from('tasks').select('*').eq('user_id', userId).is('deleted_at', null),
-        insforge.database.from('time_entries').select('*').eq('user_id', userId)
-          .gte('ended_at', weekStart.toISOString())
-          .lt('started_at', weekEnd.toISOString()),
-        insforge.database.from('weekly_budgets').select('*').eq('user_id', userId)
-          .eq('week_start', weekStartISO).maybeSingle(),
-        insforge.database.from('weekly_allocations').select('*').eq('user_id', userId)
-          .eq('week_start', weekStartISO),
-      ]);
-
+    // Fetch all in parallel; apply state only when the requests settle.
+    return Promise.all([
+      insforge.database.from('tasks').select('*').eq('user_id', userId).is('deleted_at', null),
+      insforge.database.from('time_entries').select('*').eq('user_id', userId)
+        .gte('ended_at', weekStart.toISOString())
+        .lt('started_at', weekEnd.toISOString()),
+      insforge.database.from('weekly_budgets').select('*').eq('user_id', userId)
+        .eq('week_start', weekStartISO).maybeSingle(),
+      insforge.database.from('weekly_allocations').select('*').eq('user_id', userId)
+        .eq('week_start', weekStartISO),
+    ]).then(([tasksRes, entriesRes, budgetRes, allocRes]) => {
       if (tasksRes.error) throw new Error(tasksRes.error.message);
+      setError(null);
       setAllTasks(tasksRes.data || []);
       setEntries(entriesRes.data || []);
       setBudget(budgetRes.data);
       setAllocations(allocRes.data || []);
-    } catch (err) {
+    }).catch((err) => {
       setError(err.message);
-    } finally {
+    }).finally(() => {
       setLoading(false);
-    }
+    });
   }, [userId, weekStart, weekEnd, weekStartISO]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const fetchData = useCallback(() => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    return loadData();
+  }, [loadData, userId]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const taskMap = useMemo(() => buildTaskMap(allTasks), [allTasks]);
 

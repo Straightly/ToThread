@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import insforge from '../insforge';
-import { countChildren, canMarkDone, canSoftDelete, isDoneStatus } from '../lib/taskTree';
+import { countChildren, canSoftDelete, isDoneStatus } from '../lib/taskTree';
 
 async function ensureParentReopened(parentId) {
   if (!parentId) return;

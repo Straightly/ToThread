@@ -187,3 +187,20 @@ Can we change the project policy to always 1. upgrade to the latest possible ver
 **Action:** Created root AGENTS.md with repository-wide journaling, dependency-upgrade, build-repair, and technical-debt instructions. Linked the policy from the root README and aligned planner README guidance.
 
 **Result Summary:** Policy defaults to latest stable releases including major upgrades, completing migrations, fixing build failures and inexpensive existing issues, and documenting evidence for necessary holdbacks. Documentation whitespace check passed. No application changes in this policy-only task.
+
+**Prompt:**
+```text
+Got this without know what it means and what to do. "[plugin builtin:vite-reporter] 
+**(!) Some chunks are larger than 500 kB after minification. Consider:**
+**- Using dynamic import() to code-split the application**
+**- Use build.rolldownOptions.output.codeSplitting to improve chunking: [https://rolldown.rs/reference/OutputOptions.codeSplitting](https://rolldown.rs/reference/OutputOptions.codeSplitting)**
+**- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit."**
+```
+
+**Action:** Explain bundle-size warning, inspect application imports, and implement appropriate code splitting.
+
+**Result Summary:** In progress.
+
+**Action:** Explained the bundle-size warning and changed App.jsx to lazy-load each route with a Suspense loading state. Resolved existing lint findings by separating context definitions, removing unused code, applying async request results in callbacks, and resetting timer state through a user-keyed provider. Preserved refresh loading behavior. Checked current dependency versions and audit.
+
+**Result Summary:** Production build succeeds with the largest JavaScript chunk reduced from about 588 kB to 427 kB (about 124 kB gzip); the 500 kB warning is gone without changing the threshold. Full lint and all five tests pass. Dependencies remain current and audit reports 0 known vulnerabilities. Browser verification passed for normal login rendering and isolated Done-toggle, timer-transition, user-switch, and sign-out scenarios; temporary test files removed. Separate SDK crypto-fallback build notice remains. No deployment performed.

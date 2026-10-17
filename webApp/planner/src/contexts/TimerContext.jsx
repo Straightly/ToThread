@@ -1,58 +1,59 @@
-import { createContext, useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import insforge from '../insforge';
 import { useAuth } from '../hooks/useAuth';
 import { isNoOp, computeElapsedMs } from '../lib/timeUtils';
-
-export const TimerContext = createContext(null);
+import { TimerContext } from './timerStateContext';
 
 export function TimerProvider({ children }) {
   const { user } = useAuth();
+  return <TimerSessionProvider key={user?.id || 'signed-out'} user={user}>{children}</TimerSessionProvider>;
+}
+
+function TimerSessionProvider({ user, children }) {
   const [timerState, setTimerState] = useState(null); // { mode, task_id, started_at }
   const [taskTitle, setTaskTitle] = useState(null);
   const [elapsedMs, setElapsedMs] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(user));
   const intervalRef = useRef(null);
 
   // Fetch current timer state from DB
-  const fetchTimerState = useCallback(async () => {
+  const fetchTimerState = useCallback(() => {
     if (!user) return;
-    const { data, error } = await insforge.database
+    return insforge.database
       .from('timer_state')
       .select('*')
       .eq('user_id', user.id)
-      .maybeSingle();
-    if (error) {
-      console.error('Failed to fetch timer state:', error);
-      return;
-    }
-    if (data) {
-      setTimerState(data);
-      // Fetch task title if working
-      if (data.mode === 'working' && data.task_id) {
-        const { data: task } = await insforge.database
-          .from('tasks')
-          .select('title')
-          .eq('id', data.task_id)
-          .maybeSingle();
-        setTaskTitle(task?.title || '(unknown task)');
-      } else {
-        setTaskTitle(null);
-      }
-    } else {
-      // First use: default to transitioning, no DB row yet
-      setTimerState({ mode: 'transitioning', task_id: null, started_at: null });
-      setTaskTitle(null);
-    }
+      .maybeSingle().then(async ({ data, error }) => {
+        if (error) {
+          console.error('Failed to fetch timer state:', error);
+          return;
+        }
+        if (data) {
+          setTimerState(data);
+          setElapsedMs(computeElapsedMs(data.started_at));
+          // Fetch task title if working
+          if (data.mode === 'working' && data.task_id) {
+            const { data: task } = await insforge.database
+              .from('tasks')
+              .select('title')
+              .eq('id', data.task_id)
+              .maybeSingle();
+            setTaskTitle(task?.title || '(unknown task)');
+          } else {
+            setTaskTitle(null);
+          }
+        } else {
+          // First use: default to transitioning, no DB row yet
+          setTimerState({ mode: 'transitioning', task_id: null, started_at: null });
+          setElapsedMs(0);
+          setTaskTitle(null);
+        }
+      });
   }, [user]);
 
   // Initial load
   useEffect(() => {
-    if (!user) {
-      setTimerState(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    if (!user) return;
     fetchTimerState().finally(() => setLoading(false));
   }, [user, fetchTimerState]);
 
@@ -63,8 +64,6 @@ export function TimerProvider({ children }) {
       const tick = () => setElapsedMs(computeElapsedMs(timerState.started_at));
       tick();
       intervalRef.current = setInterval(tick, 1000);
-    } else {
-      setElapsedMs(0);
     }
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [timerState?.started_at]);
@@ -106,6 +105,7 @@ export function TimerProvider({ children }) {
     };
     await insforge.database.from('timer_state').upsert(newState);
     setTimerState(newState);
+    setElapsedMs(0);
   }, [user, timerState]);
 
   const startWork = useCallback(async (taskId, title) => {
