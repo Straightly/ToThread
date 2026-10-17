@@ -38,7 +38,7 @@ export default function ArbitraryFields({ fields, onChange }) {
                 value={value}
                 onChange={e => handleUpdate(key, e.target.value)}
                 className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded
-                  focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  focus:outline-hidden focus:ring-1 focus:ring-blue-500"
               />
               <button
                 type="button"
@@ -59,7 +59,7 @@ export default function ArbitraryFields({ fields, onChange }) {
           onChange={e => setNewKey(e.target.value)}
           placeholder="Key"
           className="w-24 px-2 py-1 text-sm border border-gray-200 rounded
-            focus:outline-none focus:ring-1 focus:ring-blue-500"
+            focus:outline-hidden focus:ring-1 focus:ring-blue-500"
         />
         <input
           type="text"
@@ -67,7 +67,7 @@ export default function ArbitraryFields({ fields, onChange }) {
           onChange={e => setNewValue(e.target.value)}
           placeholder="Value"
           className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded
-            focus:outline-none focus:ring-1 focus:ring-blue-500"
+            focus:outline-hidden focus:ring-1 focus:ring-blue-500"
         />
         <button
           type="button"

@@ -1,4 +1,4 @@
-import jsYaml from 'js-yaml';
+import { load, YAML11_SCHEMA } from 'js-yaml';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -13,7 +13,7 @@ function isValidUuid(str) {
  *   - Wrapped object with .tasks key (original ToThread app)
  */
 function parseYamlTasks(yamlString) {
-  const parsed = jsYaml.load(yamlString);
+  const parsed = load(yamlString, { schema: YAML11_SCHEMA });
   if (Array.isArray(parsed)) return parsed;
   if (parsed && typeof parsed === 'object' && Array.isArray(parsed.tasks)) return parsed.tasks;
   throw new Error('Unrecognized YAML format: expected an array or an object with a "tasks" key');
@@ -139,7 +139,7 @@ export async function importTasksFromYaml(yamlString, insforge, userId, rootPare
 
       const hasValidId = isValidUuid(standard.id);
 
-      let taskId = null;
+      let taskId;
 
       if (hasValidId && existingIds.has(standard.id)) {
         // Update existing task instead of skipping; keep parent/position unchanged.

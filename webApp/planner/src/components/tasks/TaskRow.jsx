@@ -125,7 +125,7 @@ export default function TaskRow({ task, childCount, taskAbove, isRootLevel, onNa
         {/* Title area - clickable to open detail */}
         <button
           onClick={() => onOpenDetail(task)}
-          className={`block w-full text-left text-sm leading-5 break-words ${
+          className={`block w-full text-left text-sm leading-5 wrap-break-word ${
             taskIsDone ? 'line-through text-gray-400' : 'text-gray-900'
           }`}
         >

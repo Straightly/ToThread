@@ -54,7 +54,7 @@ export default function TaskDetailOverlay({ task, onSave, onClose }) {
                 onChange={e => setTitle(e.target.value)}
                 required
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -64,7 +64,7 @@ export default function TaskDetailOverlay({ task, onSave, onClose }) {
                 value={status}
                 onChange={e => setStatus(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               >
                 {STATUS_VALUES.map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -80,7 +80,7 @@ export default function TaskDetailOverlay({ task, onSave, onClose }) {
                 onChange={e => setTags(e.target.value)}
                 placeholder="e.g. frontend, urgent"
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  focus:outline-hidden focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -91,7 +91,7 @@ export default function TaskDetailOverlay({ task, onSave, onClose }) {
                 onChange={e => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-y"
               />
             </div>
 
@@ -102,7 +102,7 @@ export default function TaskDetailOverlay({ task, onSave, onClose }) {
                 onChange={e => setResult(e.target.value)}
                 rows={2}
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  focus:outline-hidden focus:ring-2 focus:ring-blue-500 resize-y"
               />
             </div>
 

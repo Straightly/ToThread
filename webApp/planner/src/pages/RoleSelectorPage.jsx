@@ -26,7 +26,7 @@ export default function RoleSelectorPage() {
             <button
               key={role}
               onClick={() => handleSelect(role)}
-              className="w-full p-4 bg-white border border-gray-200 rounded-lg shadow-sm
+              className="w-full p-4 bg-white border border-gray-200 rounded-lg shadow-xs
                 hover:border-blue-400 hover:bg-blue-50 transition text-left"
             >
               <div className="font-medium text-gray-900">{ROLE_NAMES[role] || role}</div>

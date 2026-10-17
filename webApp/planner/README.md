@@ -1,5 +1,33 @@
 # React + Vite
 
+## Dependency upgrades and verification
+
+The planner uses Tailwind CSS 4 with `@tailwindcss/postcss`, React 19,
+InsForge SDK 1.5, js-yaml 5, and ESLint 10. Use Node.js 22.13+ or 24+.
+Tailwind 4 requires Safari 16.4+, Chrome 111+, or Firefox 128+.
+
+From this directory:
+
+```bash
+npm ci
+npm test
+npm run build
+npm audit
+npm outdated
+```
+
+The tests check YAML task import/export and the SDK OAuth/database request
+contracts using mocked requests; they do not access live user data.
+Before deploying, sign in and check task navigation, the Misc Todos Done
+toggle, task edits, YAML import/export, and timer controls. Existing lint
+findings in context/effect handling and unused imports were recorded during the
+upgrade. Follow the repository's [maintenance policy](../../AGENTS.md): resolve
+inexpensive existing issues during related work and document concrete blockers
+for anything that must remain.
+
+Deploy the application source with `npx @insforge/cli deployments deploy .`.
+Keep `package.json` and `package-lock.json` together when committing upgrades.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

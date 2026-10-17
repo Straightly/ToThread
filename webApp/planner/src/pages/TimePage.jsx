@@ -73,7 +73,7 @@ export default function TimePage() {
               onChange={(e) => setBudgetInput(e.target.value)}
               onBlur={handleBudgetBlur}
               placeholder="hours"
-              className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-24 px-2 py-1 text-sm border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
             />
             <span className="text-sm text-gray-400">hours</span>
           </div>
@@ -181,7 +181,7 @@ function AllocationRow({ taskId, taskTitle, plannedHours, actualHours, onSave })
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleBlur}
           placeholder="-"
-          className="w-16 px-1.5 py-0.5 text-sm text-right border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-16 px-1.5 py-0.5 text-sm text-right border border-gray-300 rounded-sm focus:outline-hidden focus:ring-1 focus:ring-blue-500"
         />
       </td>
       <td className="text-right px-3 py-2 text-gray-600">{actualHours}h</td>

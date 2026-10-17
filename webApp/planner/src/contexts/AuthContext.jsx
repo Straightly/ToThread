@@ -28,7 +28,8 @@ export function AuthProvider({ children }) {
       .eq('id', u.id);
     if (data && data.length > 0) return; // profile already exists
 
-    const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email;
+    const name = u.profile?.name || u.metadata?.full_name || u.metadata?.name
+      || u.user_metadata?.full_name || u.user_metadata?.name || u.email;
     await insforge.database.from('profiles').insert([{
       id: u.id,
       email: u.email,
@@ -83,8 +84,7 @@ export function AuthProvider({ children }) {
   }, [loadSession]);
 
   const signInWithGoogle = useCallback(async () => {
-    await insforge.auth.signInWithOAuth({
-      provider: 'google',
+    await insforge.auth.signInWithOAuth('google', {
       redirectTo: window.location.origin,
     });
   }, []);

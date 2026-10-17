@@ -125,3 +125,65 @@ Run \`npm audit\` for details.
 **Action:** Inspected the planner audit (21 vulnerabilities) and official npm audit/update documentation. A subsequent registry request failed due to DNS.
 
 **Result Summary:** Recommend compatible npm audit fix, re-audit, build, targeted lint, and manual smoke checks before deployment. Explain that npm ci preserves the lockfile and force can introduce breaking upgrades. No dependencies changed.
+
+**Prompt:**
+```text
+"error during build:
+Build failed with 1 error:
+
+[plugin vite:css] /Volumes/DevData/ToThread/webApp/planner/src/index.css:undefined:NaN
+Error: [postcss] It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    at mt (/Volumes/DevData/ToThread/webApp/planner/node_modules/tailwindcss/dist/lib.js:38:1643)
+    at LazyResult.runOnRoot (/Volumes/DevData/ToThread/webApp/planner/node_modules/postcss/lib/lazy-result.js:367:16)
+    at LazyResult.runAsync (/Volumes/DevData/ToThread/webApp/planner/node_modules/postcss/lib/lazy-result.js:296:26)
+    at LazyResult.async (/Volumes/DevData/ToThread/webApp/planner/node_modules/postcss/lib/lazy-result.js:198:30)
+    at LazyResult.then (/Volumes/DevData/ToThread/webApp/planner/node_modules/postcss/lib/lazy-result.js:455:17)
+    at async runPostCSS (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:30506:19)
+    at async compilePostCSS (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:30490:6)
+    at async compileCSS (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:30420:26)
+    at async TransformPluginContextImpl.handler (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:29891:47)
+    at async plugin (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/rolldown/dist/shared/bindingify-input-options-UCGox0BH.mjs:1730:16)
+    at aggregateBindingErrorsIntoJsError (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/rolldown/dist/shared/error-CBG33oNV.mjs:49:18)
+    at unwrapBindingResult (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/rolldown/dist/shared/error-CBG33oNV.mjs:19:128)
+    at #build (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/rolldown/dist/shared/rolldown-BYX6bV3R.mjs:146:34)
+    at async buildEnvironment (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:34716:66)
+    at async Object.build (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:35137:19)
+    at async Object.buildApp (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/chunks/node.js:35134:153)
+    at async CAC.<anonymous> (file:///Volumes/DevData/ToThread/webApp/planner/node_modules/vite/dist/node/cli.js:780:3) {
+  errors: [Getter/Setter]
+}"
+```
+
+**Action:** Diagnose Tailwind/PostCSS version mismatch and restore a compatible build.
+
+**Result Summary:** In progress.
+
+**Action:** Found Tailwind 4 installed alongside Tailwind 3 PostCSS/CSS configuration. Restored and pinned Tailwind 3.4.19 using npm install tailwindcss@3.4 --save-exact; updated dependency lockfile.
+
+**Result Summary:** Production build passes with existing styling output preserved. npm install reports 7 remaining vulnerabilities (2 moderate, 5 high); security remediation is not complete. No deployment performed.
+
+**Prompt:**
+```text
+I did the npm audit fix --force.  Why avoid it?  Can we fix everything and upgrade to the most recent packages without vulnerabilities?
+```
+
+**Action:** Inspect current dependencies, latest releases, and audit; upgrade with compatibility fixes and verify.
+
+**Result Summary:** In progress.
+
+**Action:** Upgraded all planner direct dependencies to latest stable npm releases. Migrated Tailwind 3 to 4 using the official upgrade tool, including CSS/PostCSS and utility changes. Migrated js-yaml imports/options and retained YAML 1.1 import semantics. Updated SDK OAuth call and profile-name compatibility. Added five YAML and mocked SDK regression tests plus upgrade/deployment documentation.
+
+**Result Summary:** npm outdated returns no outdated packages; npm audit and clean npm ci report 0 known vulnerabilities. Production build passes; all five tests and targeted lint pass. Login page renders with no browser errors. Full lint still flags existing context/effect/unused-code patterns (new tooling reports more of these); authenticated live workflows were not exercised. Build warns about bundle size and the SDK Node crypto fallback, which browsers avoid via Web Crypto. Not deployed.
+
+**Prompt:**
+```text
+Can we change the project policy to always 1. upgrade to the latest possible version of all dependencies. 2. fix everything broken when build?  We will sometimes reach an impasse and have to hold back, but we should only do that when we have to.  I do not like to leave tech debt when fixing it is relatively cheap.
+```
+
+**Action:** Locate project instructions and record a dependency-upgrade and build-repair policy.
+
+**Result Summary:** In progress.
+
+**Action:** Created root AGENTS.md with repository-wide journaling, dependency-upgrade, build-repair, and technical-debt instructions. Linked the policy from the root README and aligned planner README guidance.
+
+**Result Summary:** Policy defaults to latest stable releases including major upgrades, completing migrations, fixing build failures and inexpensive existing issues, and documenting evidence for necessary holdbacks. Documentation whitespace check passed. No application changes in this policy-only task.

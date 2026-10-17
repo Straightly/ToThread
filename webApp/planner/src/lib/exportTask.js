@@ -1,4 +1,4 @@
-import jsYaml from 'js-yaml';
+import { dump } from 'js-yaml';
 
 /**
  * Build task trees for an array of visible tasks (with recursive children).
@@ -65,11 +65,11 @@ function formatTask(task, children) {
  * Serialize task trees to YAML string.
  */
 export function tasksToYaml(taskTrees) {
-  return jsYaml.dump(taskTrees, {
+  return dump(taskTrees, {
     indent: 2,
     lineWidth: -1,
     noRefs: true,
-    quotingType: '"',
+    quoteStyle: 'double',
     forceQuotes: false,
   });
 }

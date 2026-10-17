@@ -10,7 +10,7 @@ export default function LoginPage() {
           Project Planner
         </h1>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-6">
           <button
             type="button"
             onClick={signInWithGoogle}

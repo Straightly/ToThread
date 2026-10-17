@@ -223,7 +223,7 @@ export default function PlannerPage() {
                 type="checkbox"
                 checked={showFinished}
                 onChange={e => setShowFinished(e.target.checked)}
-                className="rounded border-gray-300"
+                className="rounded-sm border-gray-300"
               />
               Show done
             </label>

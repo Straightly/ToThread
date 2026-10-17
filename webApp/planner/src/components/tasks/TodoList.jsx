@@ -55,7 +55,7 @@ export default function TodoList({ todoItems, miscTodosTask, miscTodoItems, load
               type="checkbox"
               checked={showDone}
               onChange={(event) => setShowDone(event.target.checked)}
-              className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+              className="rounded-sm border-amber-300 text-amber-600 focus:ring-amber-500"
             />
             Show Done items
           </label>

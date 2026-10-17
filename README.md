@@ -1,6 +1,8 @@
 # ToThread
 ToDo, ToRead, ToWrite, To work on threads like a student or an LLM under training.
 
+Project maintenance and dependency-upgrade policy is defined in [AGENTS.md](AGENTS.md).
+
 ## Plan API Test Script
 
 The backend includes a plan task CRUD API and a test script to validate it end‑to‑end.

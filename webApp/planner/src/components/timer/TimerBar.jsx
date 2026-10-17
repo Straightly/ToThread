@@ -19,7 +19,7 @@ export default function TimerBar() {
   const config = modeConfig[mode] || modeConfig.transitioning;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-4 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-4 shadow-xs">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${config.dotColor}`} />
@@ -42,7 +42,7 @@ export default function TimerBar() {
             <button
               type="button"
               onClick={stop}
-              className="px-3 py-1 text-xs font-medium rounded bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+              className="px-3 py-1 text-xs font-medium rounded-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
             >
               Stop
             </button>
@@ -51,7 +51,7 @@ export default function TimerBar() {
             <button
               type="button"
               onClick={startSleep}
-              className="px-3 py-1 text-xs font-medium rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+              className="px-3 py-1 text-xs font-medium rounded-sm bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
             >
               Sleep
             </button>

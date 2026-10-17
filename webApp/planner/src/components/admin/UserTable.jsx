@@ -34,7 +34,7 @@ export default function UserTable({ users, loading, currentUserId, onToggleRole 
                   type="checkbox"
                   checked={u.roles.includes('admin')}
                   onChange={() => onToggleRole(u.id, 'admin', u.roles.includes('admin'))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </td>
               <td className="text-center px-4 py-3">
@@ -42,7 +42,7 @@ export default function UserTable({ users, loading, currentUserId, onToggleRole 
                   type="checkbox"
                   checked={u.roles.includes('user')}
                   onChange={() => onToggleRole(u.id, 'user', u.roles.includes('user'))}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </td>
             </tr>
