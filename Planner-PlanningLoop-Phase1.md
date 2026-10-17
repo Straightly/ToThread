@@ -30,11 +30,14 @@ Use the existing planner at `webApp/planner/` as the implementation base.
 
 The current app has a single task tree. That is not enough to represent:
 - one overall plan,
+- ongoing efforts that do not have a completion condition,
 - multiple smaller project plans,
 - explicit daily plans,
 - and review artifacts.
 
 So Phase 2+ should introduce first-class **plans**, while keeping **tasks** as the executable work items.
+
+The workflow model distinguishes an ongoing **effort** from a finite **project**. Daily selections and reviews are planning artifacts, but whether they share the same physical table as plans is intentionally deferred until their workflows are implemented. See `Planner-UseCases-And-Workflows.md`.
 
 ### Decision 3 — Make daily planning explicit, not only derived
 
@@ -57,7 +60,7 @@ Planning, review, and admin/organizing effort should be modeled as real tasks an
 
 ## In Scope
 
-- Overall plan composed of smaller project plans
+- Overall portfolio composed of ongoing efforts and finite projects
 - Explicit daily planning
 - Daily and weekly time budgeting
 - Actual-time tracking that supports full-day accounting
@@ -84,7 +87,8 @@ Planning, review, and admin/organizing effort should be modeled as real tasks an
 ## What is missing
 
 - No first-class overall plan
-- No separation between one project plan and another project plan
+- No distinction between ongoing efforts and finite projects
+- No separation between one plan and another plan
 - No explicit daily plan artifact
 - No explicit day-close or week-close review workflow
 - No strong “24-hour completeness” validation/report
@@ -100,25 +104,32 @@ This section defines the logical model. It is intentionally product-first, not y
 
 A **plan** is a container for intentional work.
 
-### Plan types
+### Plan kinds
 
-- `overall` — the top-level umbrella plan
-- `project` — a plan for one project or subproject
-- `daily` — a plan for one calendar day
-- `review` — a plan/review artifact for daily or weekly reflection
+- `overall` — the top-level portfolio plan
+- `effort` — ongoing work without a fixed completion condition
+- `project` — a finite plan for one project or subproject
+
+Daily selections and review artifacts remain part of the logical model below, but this document does not require them to be stored as plan rows.
 
 ### Required fields
 
 - `id`
 - `user_id`
-- `type`
+- `kind`
 - `title`
-- `status` (`active`, `archived`, `draft`)
-- `date_scope` (`none`, `day`, `week`)
-- `scope_date` or `scope_start/scope_end`
+- `status` appropriate to the kind (`active`, `paused`, `completed`, `canceled`, `archived`, or `draft`)
 - `parent_plan_id` nullable
+- `position`
 - `created_at`
 - `updated_at`
+
+### Optional fields required by specific workflows
+
+- `desired_outcome` for finite projects
+- `completion_condition` for finite projects
+- association to an existing task root
+- repository identity and repository-relative folder path
 
 ## 2. Task
 
@@ -205,19 +216,27 @@ A **review artifact** records what happened and what to change.
 
 ## Overall plan
 
-- Contains top-level goals, initiatives, and planning tasks
-- Links to project plans
+- Contains the ordered portfolio of ongoing efforts and finite projects
 - Produces the set of candidate work for each day
+
+## Effort plan
+
+- Owns ongoing work such as Job Search or Organize and Prioritize Projects
+- Can contain finite projects and executable tasks
+- Is reviewed, paused, or archived rather than marked complete
+- Rolls planned and actual time upward without requiring a finish line
 
 ## Project plan
 
 - Owns project-specific tasks and subtasks
-- Can link to subproject plans
+- Can belong to an effort or another project
+- Has a desired outcome and completion condition
+- Can contain subproject plans
 - Rolls actual time and planned time upward
 
-## Daily plan
+## Daily selection
 
-- Pulls selected tasks from overall/project plans
+- Pulls selected tasks from effort/project plans
 - Includes planning/review tasks
 - Includes a time budget for the day
 - Becomes the main execution list for “today”
@@ -234,8 +253,8 @@ A **review artifact** records what happened and what to change.
 ## 1. Weekly planning
 
 - Review the overall plan
-- Review active project plans
-- Select the projects/tasks that matter this week
+- Review active efforts and projects
+- Select the efforts, projects, and tasks that matter this week
 - Set a weekly time budget
 - Allocate weekly planned hours by project/task
 
@@ -271,6 +290,9 @@ A **review artifact** records what happened and what to change.
 ## Product Rules / Invariants
 
 - [ ] Every user has at most one active `overall` plan.
+- [ ] Every plan is explicitly an `effort` or `project` unless it is the `overall` portfolio.
+- [ ] An effort cannot be completed; it can be active, paused, or archived.
+- [ ] A project has a desired outcome and completion condition before project-close is enabled.
 - [ ] Every task belongs to exactly one plan.
 - [ ] A linked child plan must belong to the same user.
 - [ ] A daily plan is date-scoped and unique per user per day.
@@ -337,10 +359,11 @@ Keep the Git-native project-graph direction in `ProjectPlan.md` as a future arch
 - [ ] Add migrations and RLS for new planning tables
 - [ ] Update planner queries/hooks to be plan-aware
 
-## Phase 3 — Overall plan and project plans
+## Phase 3 — Overall, effort, and project plans
 
 - [ ] Create overall-plan view
-- [ ] Add project-plan list/navigation
+- [ ] Add effort/project list and navigation
+- [ ] Support finite projects inside ongoing efforts
 - [ ] Support linking a task to a child project plan
 - [ ] Add roll-up summaries from project plans into the overall plan
 
@@ -388,6 +411,7 @@ Keep the Git-native project-graph direction in `ProjectPlan.md` as a future arch
 
 ## References
 
+- `Planner-UseCases-And-Workflows.md` — user-centered workflows, current capability gaps, and incremental vertical slices
 - `webApp/planner-plan.md`
 - `TasksToDo-Spec.md`
 - `TimeManagement-Spec.md`
